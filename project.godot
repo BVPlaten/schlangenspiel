@@ -1,0 +1,48 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Schlangenspiel"
+run/main_scene="res://start_scene.tscn"
+config/features=PackedStringArray("4.4", "Forward Plus")
+config/icon="res://gfx/icon.svg"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=1024
+
+[global]
+
+block_size=32
+movement_speed=0.1
+speed_boost_multiplier=2.0
+speed_boost_duration=0.5
+
+[input]
+
+pause_game={
+"deadzone": 0.5,
+"events": [{
+"device": 0,
+"keycode": 80,
+"modifers": [],
+"physical_keycode": 0,
+"pressed": false,
+"resource_name": "",
+"type": "InputEventKey",
+"unicode": 112
+}]
+}
+
+[rendering]
+
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)

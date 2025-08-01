@@ -1,0 +1,30 @@
+# Godot-specific ignores
+.godot/
+!.godot/global_script_class_cache.cfg
+!.godot/project_metadata.cfg
+!.godot/scene_groups_cache.cfg
+!.godot/uid_cache.bin
+
+# Mono-specific ignores
+.mono/
+
+# User-specific ignores
+.editor/
+.vscode/
+
+# Imported assets
+*.import
+
+# Rendered images and videos
+*.ogv
+*.png~
+*.jpg~
+
+# Audio files
+*.mp3
+*.wav
+
+# Secrets and credentials - prevent accidental uploads
+*api_keys.gd
+*secrets.cfg
+*.env

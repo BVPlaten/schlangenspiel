@@ -1,0 +1,30 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8h6k2q5v8x1p"]
+
+[ext_resource type="Script" uid="uid://dftunpmeqjxce" path="res://start_scene.gd" id="1_8x5k2"]
+[ext_resource type="Texture2D" uid="uid://d21j2kpl4u5bg" path="res://gfx/startscreen.png" id="2_9y7z3"]
+
+[node name="StartScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_8x5k2")
+
+[node name="TitleSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_9y7z3")
+
+[node name="MenuContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -50.0
+offset_right = 100.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
