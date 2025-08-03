@@ -151,19 +151,36 @@ func get_player_config(player_id: int):
 func get_active_players():
 	return player_configs.keys()
 
-## Process input events
-func _input(event):
-	# Handle keyboard input
-	for player_id in player_configs.keys():
-		var config = player_configs[player_id]
-		if config.input_type == "keyboard":
-			process_keyboard_input(player_id, config, event)
-	
-	# Handle controller input
+## Process frame-based updates for polling continuous input like movement.
+func _process(_delta):
+	# Handle controller movement polling
 	for player_id in player_configs.keys():
 		var config = player_configs[player_id]
 		if config.input_type == "controller":
-			process_controller_input(player_id, config)
+			_process_controller_movement(player_id, config)
+
+## Process event-based input (key/button presses).
+func _input(event):
+	# Handle keyboard input events
+	if event is InputEventKey:
+		for player_id in player_configs.keys():
+			var config = player_configs[player_id]
+			if config.input_type == "keyboard":
+				process_keyboard_input(player_id, config, event)
+
+	# Handle controller button press events
+	elif event is InputEventJoypadButton and event.is_pressed():
+		for player_id in player_configs.keys():
+			var config = player_configs[player_id]
+			# Check if the event is for this player's controller
+			if config.input_type == "controller" and config.controller_id == event.device:
+				match event.button_index:
+					JOY_BUTTON_START:
+						pause_pressed.emit(player_id)
+					JOY_BUTTON_BACK:
+						exit_pressed.emit(player_id)
+					JOY_BUTTON_Y: # Corresponds to Triangle on PS, Y on Xbox
+						restart_pressed.emit(player_id)
 
 ## Process keyboard input for a specific player
 ## @param player_id: The player ID
@@ -197,17 +214,18 @@ func process_keyboard_input(player_id: int, config: InputConfig, event):
 		config.last_direction = new_direction
 		direction_changed.emit(player_id, new_direction)
 
-## Process controller input for all controller players
-func process_controller_input(player_id: int, config: InputConfig):
+## Process continuous controller movement input (polling).
+## This is called every frame from _process.
+func _process_controller_movement(player_id: int, config: InputConfig):
 	var controller_id = config.controller_id
 	
 	# Check if controller is still connected
 	if not Input.is_joy_known(controller_id):
 		return
 	
-	# Direction changes using D-pad
 	var new_direction = null
 	
+	# Direction changes using D-pad (polled)
 	if Input.is_joy_button_pressed(controller_id, JOY_BUTTON_DPAD_UP):
 		new_direction = Vector2.UP
 	elif Input.is_joy_button_pressed(controller_id, JOY_BUTTON_DPAD_DOWN):
@@ -217,26 +235,18 @@ func process_controller_input(player_id: int, config: InputConfig):
 	elif Input.is_joy_button_pressed(controller_id, JOY_BUTTON_DPAD_RIGHT):
 		new_direction = Vector2.RIGHT
 	
-	# Alternative: Use analog stick
+	# Alternative: Use analog stick (polled), give D-Pad priority
 	var axis_left = Vector2(
 		Input.get_joy_axis(controller_id, JOY_AXIS_LEFT_X),
 		Input.get_joy_axis(controller_id, JOY_AXIS_LEFT_Y)
 	)
 	
-	if axis_left.length() > 0.5:
+	if new_direction == null and axis_left.length() > 0.5:
 		# Convert analog input to discrete directions
 		if abs(axis_left.x) > abs(axis_left.y):
 			new_direction = Vector2.RIGHT * sign(axis_left.x)
 		else:
 			new_direction = Vector2.DOWN * sign(axis_left.y)
-	
-	# Action buttons
-	if Input.is_joy_button_just_pressed(controller_id, JOY_BUTTON_START):
-		pause_pressed.emit(player_id)
-	elif Input.is_joy_button_just_pressed(controller_id, JOY_BUTTON_BACK):
-		exit_pressed.emit(player_id)
-	elif Input.is_joy_button_just_pressed(controller_id, JOY_BUTTON_Y):
-		restart_pressed.emit(player_id)
 	
 	if new_direction != null and new_direction != config.last_direction:
 		config.last_direction = new_direction

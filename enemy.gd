@@ -6,6 +6,8 @@ var life_time = 0.0
 var move_timer
 var direction = Vector2.ZERO
 var grid_position = Vector2.ZERO
+var body = []
+var new_segment = false
 
 func _ready():
 	spawn_timer = Timer.new()
@@ -21,6 +23,7 @@ func _ready():
 	move_timer.start()
 	
 	set_random_direction()
+	body.append(grid_position)
 
 func _process(delta):
 	life_time += delta
@@ -35,7 +38,8 @@ func _draw():
 	var block_size = ProjectSettings.get_setting("global/block_size")
 	var color = Color.RED
 	color.a = alpha
-	draw_rect(Rect2(0, 0, block_size, block_size), color)
+	for segment in body:
+		draw_rect(Rect2(segment * block_size, Vector2(block_size, block_size)), color)
 
 func respawn_safe(snake_head_pos: Vector2):
 	var block_size = ProjectSettings.get_setting("global/block_size")
@@ -56,7 +60,7 @@ func respawn_safe(snake_head_pos: Vector2):
 		var distance = new_pos.distance_to(snake_head_pos / block_size)
 		if distance >= safe_distance:
 			grid_position = new_pos
-			position = grid_position * block_size
+			body = [grid_position]
 			alpha = 1.0
 			life_time = 0.0
 			set_random_direction()
@@ -66,7 +70,7 @@ func respawn_safe(snake_head_pos: Vector2):
 	
 	# Fallback if no safe position found
 	grid_position = Vector2(0, 0)
-	position = grid_position * block_size
+	body = [grid_position]
 	alpha = 1.0
 	life_time = 0.0
 	set_random_direction()
@@ -82,22 +86,31 @@ func _on_move_timer_timeout():
 	var grid_width = floor(viewport_size.x / block_size)
 	var grid_height = floor(viewport_size.y / block_size)
 	
-	var new_grid_pos = grid_position + direction
+	var new_head_pos = body[0] + direction
 	
 	# Wrap around screen edges
-	if new_grid_pos.x >= grid_width:
-		new_grid_pos.x = 0
-	elif new_grid_pos.x < 0:
-		new_grid_pos.x = grid_width - 1
+	if new_head_pos.x >= grid_width:
+		new_head_pos.x = 0
+	elif new_head_pos.x < 0:
+		new_head_pos.x = grid_width - 1
 	
-	if new_grid_pos.y >= grid_height:
-		new_grid_pos.y = 0
-	elif new_grid_pos.y < 0:
-		new_grid_pos.y = grid_height - 1
+	if new_head_pos.y >= grid_height:
+		new_head_pos.y = 0
+	elif new_head_pos.y < 0:
+		new_head_pos.y = grid_height - 1
 	
-	grid_position = new_grid_pos
-	position = grid_position * block_size
+	body.insert(0, new_head_pos)
+	
+	if new_segment:
+		new_segment = false
+	else:
+		body.pop_back()
+	
+	grid_position = new_head_pos
 	queue_redraw()
+
+func grow():
+	new_segment = true
 
 func _on_spawn_timer_timeout():
 	# This will be called from main.gd with snake head position

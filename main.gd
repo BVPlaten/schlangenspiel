@@ -5,22 +5,14 @@
 ## It serves as the central hub for all game logic and interactions.
 extends Node2D
 
-## Reference to the snake instance
-var snake
-## Reference to the food instance
-var food
-## Current game score, increases when snake eats food
-var score = 0
-## Flag indicating if the game has ended
-var game_over = false
-## Flag indicating if the game is currently paused
-var is_paused = false
-## Audio player for eating sound effects
-var eat_sound
-## Audio player for background music
-var background_music
-## Array storing all active poison items on the game field
-var poison_items = []
+var snake             # Referenz zur Schlangeninstanz
+var food              # Referenz zur Futterinstanz
+var score = 0         # Aktueller Spielstand, erhöht sich, wenn die Schlange Futter frisst
+var game_over = false # Flag, das anzeigt, ob das Spiel beendet ist
+var is_paused = false # Flag, das anzeigt, ob das Spiel aktuell pausiert ist
+var eat_sound         # Audio-Player für den Fress-Soundeffekt
+var background_music  # Audio-Player für die Hintergrundmusik
+var enemies = []      # Array, das alle aktiven Gegnerinstanzen auf dem Spielfeld speichert
 
 ## Input configuration mode: "keyboard", "controller", or "both"
 ## Determines which input methods are active for player control
@@ -109,17 +101,18 @@ func _process(_delta):
 		score += 1  # Increase score
 		eat_sound.play()  # Play eating sound effect
 		
-		# Add poison item every 5 points for increased difficulty
+		# Add enemy every 5 points for increased difficulty
 		if score % 5 == 0:
-			add_poison()
+			add_enemy()
 		
 		update_score_display()
 	
-	# Check for collisions with poison items
-	for poison in poison_items:
-		if snake.body[0] * block_size == poison.position:
-			_on_snake_game_over()  # Trigger game over on poison collision
-			return
+	# Check for collisions with enemies
+	for enemy in enemies:
+		for segment in enemy.body:
+			if snake.body[0] == segment:
+				_on_snake_game_over()  # Trigger game over on enemy collision
+				return
 
 ## Update the score display label.
 ##
@@ -209,25 +202,29 @@ func _input(event):
 	if game_over and event.is_action_pressed("ui_accept"):
 		get_tree().reload_current_scene()
 
-## Add a new poison item to the game field.
+## Add a new enemy to the game field.
 ##
-## Creates a poison item at a safe location (not on snake head) and
-## adds it to the poison items array. Poison items respawn automatically.
-func add_poison():
-	var poison = load("res://poison.gd").new()
-	add_child(poison)
-	poison.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
-	poison_items.append(poison)
+## Creates an enemy at a safe location (not on snake head) and
+## adds it to the enemies array. Enemies respawn automatically.
+func add_enemy():
+	# Grow existing enemies
+	for e in enemies:
+		e.grow()
 	
-	# Connect timer to respawn poison when it expires
-	poison.spawn_timer.connect("timeout", Callable(self, "_on_poison_respawn").bind(poison))
+	var enemy = load("res://enemy.tscn").instantiate()
+	add_child(enemy)
+	enemy.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
+	enemies.append(enemy)
+	
+	# Connect timer to respawn enemy when it expires
+	enemy.spawn_timer.connect("timeout", Callable(self, "_on_enemy_respawn").bind(enemy))
 
-## Handle poison item respawn when timer expires.
+## Handle enemy respawn when timer expires.
 ##
-## Respawns the poison item at a new safe location.
-## @param poison: The poison instance to respawn
-func _on_poison_respawn(poison):
-	poison.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
+## Respawns the enemy at a new safe location.
+## @param enemy: The enemy instance to respawn
+func _on_enemy_respawn(enemy):
+	enemy.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
 
 ## Return to the start scene from the game.
 ##

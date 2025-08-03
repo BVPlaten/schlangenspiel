@@ -8,36 +8,20 @@ extends Node2D
 ## Signal emitted when the snake collides with itself
 signal game_over
 
-## Current movement direction vector (RIGHT, LEFT, UP, DOWN)
-var direction = Vector2.RIGHT
-## Array of Vector2 positions representing the snake's body segments
-## The head is always at index 0
-var body = [Vector2(5, 5)]
-## Array of Vector2 directions for each body segment
-## Stores the direction each segment was moving when it was created
-var body_directions = [Vector2.RIGHT]
-## Timer that controls movement speed and game loop
-var timer
-## Movement interval in seconds - lower values make snake move faster
-@export var move_interval: float = ProjectSettings.get_setting("global/movement_speed", 0.05)
-## Base movement interval (normal speed)
-var base_move_interval: float
-## Flag indicating if the snake should grow on the next move
-var new_segment: bool = false
-## Timer for speed boost duration
-var speed_boost_timer
-## Flag indicating if speed boost is active
-var is_speed_boosted: bool = false
-## Speed boost multiplier from project settings
-var speed_boost_multiplier: float = ProjectSettings.get_setting("global/speed_boost_multiplier", 2.0)
-## Speed boost duration from project settings
-var speed_boost_duration: float = ProjectSettings.get_setting("global/speed_boost_duration", 0.2)
-## Head sprite texture
-var head_texture
-## Body sprite texture
-var body_texture
-## Array of Sprite2D nodes for visual representation
-var sprite_nodes = []
+var direction              = Vector2.RIGHT                                                              # Aktueller Bewegungsvektor (RECHTS, LINKS, HOCH, RUNTER)
+var body                   = [Vector2(5, 5)]                                                            # Array von Vector2-Positionen, die die Körpersegmente darstellen (Kopf bei Index 0)
+var body_directions        = [Vector2.RIGHT]                                                            # Array von Richtungen für jedes Körpersegment
+var timer                                                                                               # Timer, der die Bewegungsgeschwindigkeit steuert
+@export var move_interval: float = ProjectSettings.get_setting("global/movement_speed", 0.05)           # Bewegungsintervall in Sekunden (niedriger = schneller)
+var base_move_interval: float                                                                           # Basis-Bewegungsintervall (normale Geschwindigkeit)
+var new_segment: bool      = false                                                                      # Flag, ob die Schlange beim nächsten Zug wachsen soll
+var speed_boost_timer                                                                                   # Timer für die Dauer des Geschwindigkeitsschubs
+var is_speed_boosted: bool = false                                                                      # Flag, ob der Geschwindigkeitsschub aktiv ist
+var speed_boost_multiplier: float = ProjectSettings.get_setting("global/speed_boost_multiplier", 2.0)   # Multiplikator für den Geschwindigkeitsschub
+var speed_boost_duration: float = ProjectSettings.get_setting("global/speed_boost_duration", 0.2)       # Dauer des Geschwindigkeitsschubs
+var head_texture                                                                                        # Textur für den Kopf-Sprite
+var body_texture                                                                                        # Textur für den Körper-Sprite
+var sprite_nodes           = []                                                                         # Array von Sprite2D-Nodes für die visuelle Darstellung
 
 ## Initialize the snake when the node enters the scene tree.
 ##
@@ -250,4 +234,3 @@ func activate_speed_boost():
 func _on_speed_boost_timeout():
 	is_speed_boosted = false
 	timer.set_wait_time(base_move_interval)
-

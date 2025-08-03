@@ -5,11 +5,15 @@
 ## provides visual reference for the game's coordinate system.
 extends Node2D
 
+## Size of a grid block in pixels, cached for performance.
+var block_size: int
+
 ## Initialize the grid background when the node enters the scene tree.
 ##
 ## Triggers an immediate redraw to ensure the grid is visible from the start.
 ## Called automatically by the Godot engine when the scene is loaded.
 func _ready():
+	block_size = ProjectSettings.get_setting("global/block_size")
 	queue_redraw()  # Ensure _draw is called once to render the grid
 
 ## Custom drawing for the grid background.
@@ -19,7 +23,6 @@ func _ready():
 ## The grid lines are drawn in dark gray to provide subtle visual guidance
 ## without being distracting during gameplay.
 func _draw():
-	var block_size = ProjectSettings.get_setting("global/block_size")
 	var viewport_size = get_viewport_rect().size
 	var line_color = Color(0.15, 0.15, 0.15, 1)  # Dark gray lines for subtle grid
 

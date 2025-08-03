@@ -1,0 +1,17 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "providers": {
+    "kimi": {
+      "type": "openai",
+      "base_url": "https://api.moonshot.ai/v1",
+      "api_key": "sk-2ZNzTTQVkdObG0l4BRbYjfFzGZL6C9K7n9wuY9RpQn022UZL",
+      "models": [
+        {
+          "id": "kimi-latest",
+          "name": "Kimi K2",
+          "context_window": 128000
+        }
+      ]
+    }
+  }
+}

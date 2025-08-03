@@ -11,12 +11,15 @@ var alpha = 1.0
 var spawn_timer
 ## Counter tracking how long this food item has existed
 var life_time = 0.0
+## Size of a grid block in pixels, cached for performance.
+var block_size: int
 
 ## Initialize the food when the node enters the scene tree.
 ##
 ## Sets up the respawn timer and starts automatic respawning.
 ## Called automatically by the Godot engine when the scene is loaded.
 func _ready():
+	block_size = ProjectSettings.get_setting("global/block_size")
 	spawn_timer = Timer.new()
 	spawn_timer.set_wait_time(8.0)  # Respawn every 8 seconds
 	spawn_timer.connect("timeout", Callable(self, "_on_spawn_timer_timeout"))
@@ -43,17 +46,15 @@ func _process(delta):
 ## Draws a white rectangle representing the food item on the grid.
 ## The transparency is controlled by the alpha value for fade effects.
 func _draw():
-	var block_size = ProjectSettings.get_setting("global/block_size")
 	var color = Color.WHITE
 	color.a = alpha  # Apply transparency
 	draw_rect(Rect2(0, 0, block_size, block_size), color)
 
 ## Respawn the food at a new random position.
 ##
-## Calculates a random grid position within the viewport boundaries
-## and moves the food to that position. Resets fade effects and timers.
+## Calculates a random grid position within the viewport boundaries and moves the food
+## to that position. Resets fade effects and timers.
 func respawn():
-	var block_size = ProjectSettings.get_setting("global/block_size")
 	var viewport_size = get_viewport_rect().size
 	
 	# Calculate random grid position

@@ -23,4 +23,5 @@ This is a simple and fun snake game where the player controls a snake to eat foo
 
 *   **Arrow Keys:** Control the direction of the snake (Up, Down, Left, Right).
 *   **Enter:** Select menu options.
-*   **P:** Pause the game.
+*   **P** Pause the game.
+    **q** Quit the game.
