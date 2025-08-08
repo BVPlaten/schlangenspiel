@@ -7,6 +7,8 @@ extends Node2D
 
 ## Size of a grid block in pixels, cached for performance.
 var block_size: int
+## Minimum grid dimensions (10x10 fields)
+var min_grid_size = Vector2(10, 10)
 
 ## Initialize the grid background when the node enters the scene tree.
 ##
@@ -15,6 +17,8 @@ var block_size: int
 func _ready():
 	block_size = ProjectSettings.get_setting("global/block_size")
 	queue_redraw()  # Ensure _draw is called once to render the grid
+	# Connect to viewport size changes
+	get_viewport().connect("size_changed", Callable(self, "_on_viewport_size_changed"))
 
 ## Custom drawing for the grid background.
 ##
@@ -27,8 +31,9 @@ func _draw():
 	var line_color = Color(0.15, 0.15, 0.15, 1)  # Dark gray lines for subtle grid
 
 	# Calculate grid dimensions based on viewport and block size
-	var grid_width = int(viewport_size.x / block_size)
-	var grid_height = int(viewport_size.y / block_size)
+	# Ensure minimum grid size of 10x10
+	var grid_width = max(int(viewport_size.x / block_size), min_grid_size.x)
+	var grid_height = max(int(viewport_size.y / block_size), min_grid_size.y)
 
 	# Draw vertical grid lines
 	for x in range(0, grid_width + 1):
@@ -45,3 +50,9 @@ func _draw():
 			Vector2(viewport_size.x, y * block_size),  # Line end point (right)
 			line_color
 		)
+
+## Handle viewport size changes.
+##
+## Redraws the grid when the window is resized.
+func _on_viewport_size_changed():
+	queue_redraw()

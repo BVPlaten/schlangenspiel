@@ -64,36 +64,33 @@ func configure_title_graphics():
 ## Sets up Start and Options buttons with proper positioning and styling.
 func create_menu():
 	var viewport_size = get_viewport_rect().size
-	
+
 	# Load the font
 	var font = load("res://gfx/KidpixiesRegular-p0Z1.ttf")
-	
-	# Create Start button
-	var start_button = Button.new()
-	start_button.text = "Start"
-	start_button.custom_minimum_size = Vector2(200, 50)
-	start_button.add_theme_font_override("font", font)
-	start_button.add_theme_font_size_override("font_size", 24)
-	start_button.pressed.connect(_on_start_pressed)
-	
-	# Create Options button
-	var options_button = Button.new()
-	options_button.text = "Options"
-	options_button.custom_minimum_size = Vector2(200, 50)
-	options_button.add_theme_font_override("font", font)
-	options_button.add_theme_font_size_override("font_size", 24)
-	options_button.pressed.connect(_on_options_pressed)
-	
-	# Add buttons to array for keyboard navigation
-	menu_buttons = [start_button, options_button]
-	
+
+	# Define menu items with their text and the action to perform when pressed.
+	# This makes it easy to add more buttons in the future.
+	var menu_items_data = [
+		{"text": "Start", "action": _on_start_pressed},
+		{"text": "Options", "action": _on_options_pressed}
+	]
+
+	# Create buttons in a loop to avoid repetition
+	for item_data in menu_items_data:
+		var button = Button.new()
+		button.text = item_data.text
+		button.custom_minimum_size = Vector2(200, 50)
+		button.add_theme_font_override("font", font)
+		button.add_theme_font_size_override("font_size", 24)
+		button.pressed.connect(item_data.action)
+		menu_buttons.append(button)
+		menu_container.add_child(button)
+
 	# Configure menu container
 	menu_container.position = Vector2(viewport_size.x / 2, viewport_size.y * 0.8)
-	menu_container.add_child(start_button)
-	menu_container.add_child(options_button)
-	
+
 	# Set up vertical layout
-	menu_container.set("theme_override_constants/separation", 20)
+	menu_container.add_theme_constant_override("separation", 20)
 
 ## Handle keyboard input for menu navigation.
 ##

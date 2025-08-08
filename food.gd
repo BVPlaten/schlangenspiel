@@ -13,6 +13,8 @@ var spawn_timer
 var life_time = 0.0
 ## Size of a grid block in pixels, cached for performance.
 var block_size: int
+## Minimum grid dimensions (10x10 fields)
+var min_grid_size = Vector2(10, 10)
 
 ## Initialize the food when the node enters the scene tree.
 ##
@@ -25,6 +27,9 @@ func _ready():
 	spawn_timer.connect("timeout", Callable(self, "_on_spawn_timer_timeout"))
 	add_child(spawn_timer)
 	spawn_timer.start()
+	
+	# Connect to viewport size changes
+	get_viewport().connect("size_changed", Callable(self, "_on_viewport_size_changed"))
 
 ## Update food appearance every frame.
 ##
@@ -57,9 +62,13 @@ func _draw():
 func respawn():
 	var viewport_size = get_viewport_rect().size
 	
-	# Calculate random grid position
-	var x = randi_range(0, floor(viewport_size.x / block_size) - 1)
-	var y = randi_range(0, floor(viewport_size.y / block_size) - 1)
+	# Calculate grid dimensions ensuring minimum size
+	var grid_width = max(floor(viewport_size.x / block_size), min_grid_size.x)
+	var grid_height = max(floor(viewport_size.y / block_size), min_grid_size.y)
+	
+	# Calculate random grid position within actual grid bounds
+	var x = randi_range(0, grid_width - 1)
+	var y = randi_range(0, grid_height - 1)
 	
 	# Set position based on grid coordinates
 	position = Vector2(x * block_size, y * block_size)
@@ -69,8 +78,50 @@ func respawn():
 	life_time = 0.0
 	queue_redraw()
 
+## Respawn food at a safe position (not on snake head).
+##
+## Similar to respawn() but ensures the food doesn't spawn on the snake's head.
+## @param snake_head_pos: Position of the snake's head to avoid
+func respawn_safe(snake_head_pos):
+	var viewport_size = get_viewport_rect().size
+	
+	# Calculate grid dimensions ensuring minimum size
+	var grid_width = max(floor(viewport_size.x / block_size), min_grid_size.x)
+	var grid_height = max(floor(viewport_size.y / block_size), min_grid_size.y)
+	
+	var attempts = 0
+	var max_attempts = 100
+	
+	while attempts < max_attempts:
+		var x = randi_range(0, grid_width - 1)
+		var y = randi_range(0, grid_height - 1)
+		var new_pos = Vector2(x * block_size, y * block_size)
+		
+		if new_pos != snake_head_pos:
+			position = new_pos
+			alpha = 1.0
+			life_time = 0.0
+			queue_redraw()
+			return
+		
+		attempts += 1
+	
+	# Fallback: place at first available position
+	var x = randi_range(0, grid_width - 1)
+	var y = randi_range(0, grid_height - 1)
+	position = Vector2(x * block_size, y * block_size)
+	alpha = 1.0
+	life_time = 0.0
+	queue_redraw()
+
 ## Timer callback for automatic respawning.
 ##
 ## Called when the spawn timer expires. Triggers respawn at a new random position.
 func _on_spawn_timer_timeout():
 	respawn()
+
+## Handle viewport size changes.
+##
+## Redraws the food when the window is resized.
+func _on_viewport_size_changed():
+	queue_redraw()

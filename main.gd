@@ -58,6 +58,9 @@ func _ready():
 	# Configure input handling and initialize UI
 	setup_input()
 	update_score_display()
+	
+	# Connect to viewport size changes
+	get_viewport().connect("size_changed", Callable(self, "_on_viewport_size_changed"))
 
 ## Configure input handling based on the selected input mode.
 ##
@@ -226,10 +229,20 @@ func add_enemy():
 func _on_enemy_respawn(enemy):
 	enemy.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
 
+## Handle viewport size changes.
+##
+## Updates all game elements when the window is resized.
+func _on_viewport_size_changed():
+	# Ensure food stays within bounds after resize
+	food.respawn()
+	
+	# Ensure enemies stay within bounds after resize
+	for enemy in enemies:
+		enemy.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
+
 ## Return to the start scene from the game.
 ##
 ## Stops all game audio and switches back to the start screen.
 func return_to_start_scene():
 	background_music.stop()
 	get_tree().change_scene_to_file("res://start_scene.tscn")
-	

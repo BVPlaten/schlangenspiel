@@ -22,6 +22,8 @@ var speed_boost_duration: float = ProjectSettings.get_setting("global/speed_boos
 var head_texture                                                                                        # Textur für den Kopf-Sprite
 var body_texture                                                                                        # Textur für den Körper-Sprite
 var sprite_nodes           = []                                                                         # Array von Sprite2D-Nodes für die visuelle Darstellung
+## Minimum grid dimensions (10x10 fields)
+var min_grid_size = Vector2(10, 10)
 
 ## Initialize the snake when the node enters the scene tree.
 ##
@@ -51,6 +53,9 @@ func _ready():
 	speed_boost_timer.one_shot = true
 	speed_boost_timer.connect("timeout", Callable(self, "_on_speed_boost_timeout"))
 	add_child(speed_boost_timer)
+	
+	# Connect to viewport size changes
+	get_viewport().connect("size_changed", Callable(self, "_on_viewport_size_changed"))
 
 ## Timer callback for snake movement.
 ##
@@ -66,17 +71,21 @@ func _on_Timer_timeout():
 	
 	var viewport_size = get_viewport_rect().size
 	
-	# Handle horizontal screen wrapping
-	if new_head.x * block_size >= viewport_size.x:
+	# Calculate actual grid dimensions ensuring minimum size
+	var grid_width = max(floor(viewport_size.x / block_size), min_grid_size.x)
+	var grid_height = max(floor(viewport_size.y / block_size), min_grid_size.y)
+	
+	# Handle horizontal screen wrapping with minimum grid size
+	if new_head.x >= grid_width:
 		new_head.x = 0  # Wrap to left edge
 	if new_head.x < 0:
-		new_head.x = floor(viewport_size.x / block_size) - 1  # Wrap to right edge
+		new_head.x = grid_width - 1  # Wrap to right edge
 	
-	# Handle vertical screen wrapping
-	if new_head.y * block_size >= viewport_size.y:
+	# Handle vertical screen wrapping with minimum grid size
+	if new_head.y >= grid_height:
 		new_head.y = 0  # Wrap to top edge
 	if new_head.y < 0:
-		new_head.y = floor(viewport_size.y / block_size) - 1  # Wrap to bottom edge
+		new_head.y = grid_height - 1  # Wrap to bottom edge
 
 	# Check for self-collision - game over if head hits any body segment
 	for i in range(1, body.size()):
