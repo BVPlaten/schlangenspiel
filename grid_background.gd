@@ -9,6 +9,10 @@ extends Node2D
 var block_size: int
 ## Minimum grid dimensions (10x10 fields)
 var min_grid_size = Vector2(10, 10)
+## Actual grid dimensions calculated for centering
+var actual_grid_size = Vector2()
+## Offset for centering the grid
+var grid_offset = Vector2()
 
 ## Initialize the grid background when the node enters the scene tree.
 ##
@@ -22,34 +26,72 @@ func _ready():
 
 ## Custom drawing for the grid background.
 ##
-## Draws a complete grid of dark gray lines based on the global block_size setting.
-## Creates both vertical and horizontal lines that form the game field's grid.
-## The grid lines are drawn in dark gray to provide subtle visual guidance
-## without being distracting during gameplay.
+## Draws a complete grid centered in the viewport with equal borders on all sides.
+## The grid lines are drawn in dark gray to provide subtle visual guidance.
 func _draw():
 	var viewport_size = get_viewport_rect().size
+	var background_color = ProjectSettings.get_setting("global/background_color")
+	var border_color = ProjectSettings.get_setting("global/border_color")
 	var line_color = Color(0.15, 0.15, 0.15, 1)  # Dark gray lines for subtle grid
 
-	# Calculate grid dimensions based on viewport and block size
-	# Ensure minimum grid size of 10x10
-	var grid_width = max(int(viewport_size.x / block_size), min_grid_size.x)
-	var grid_height = max(int(viewport_size.y / block_size), min_grid_size.y)
-
+	# Calculate maximum possible grid dimensions that fit the viewport
+	var max_grid_width = int(viewport_size.x / block_size)
+	var max_grid_height = int(viewport_size.y / block_size)
+	
+	# Ensure minimum grid size
+	var grid_width = max(max_grid_width, min_grid_size.x)
+	var grid_height = max(max_grid_height, min_grid_size.y)
+	
+	# Calculate actual grid dimensions (limited by viewport)
+	grid_width = min(grid_width, max_grid_width)
+	grid_height = min(grid_height, max_grid_height)
+	
+	actual_grid_size = Vector2(grid_width, grid_height)
+	
+	# Calculate grid offset for centering
+	var total_grid_width = grid_width * block_size
+	var total_grid_height = grid_height * block_size
+	
+	grid_offset = Vector2(
+		(viewport_size.x - total_grid_width) / 2,
+		(viewport_size.y - total_grid_height) / 2
+	)
+	
+	# Draw background/border
+	draw_rect(Rect2(Vector2.ZERO, viewport_size), border_color)
+	
+	# Draw game area background
+	draw_rect(Rect2(grid_offset, Vector2(total_grid_width, total_grid_height)), background_color)
+	
 	# Draw vertical grid lines
 	for x in range(0, grid_width + 1):
+		var x_pos = grid_offset.x + x * block_size
 		draw_line(
-			Vector2(x * block_size, 0),  # Line start point (top)
-			Vector2(x * block_size, viewport_size.y),  # Line end point (bottom)
+			Vector2(x_pos, grid_offset.y),  # Line start point (top)
+			Vector2(x_pos, grid_offset.y + total_grid_height),  # Line end point (bottom)
 			line_color
 		)
 
 	# Draw horizontal grid lines
 	for y in range(0, grid_height + 1):
+		var y_pos = grid_offset.y + y * block_size
 		draw_line(
-			Vector2(0, y * block_size),  # Line start point (left)
-			Vector2(viewport_size.x, y * block_size),  # Line end point (right)
+			Vector2(grid_offset.x, y_pos),  # Line start point (left)
+			Vector2(grid_offset.x + total_grid_width, y_pos),  # Line end point (right)
 			line_color
 		)
+
+## Get the actual grid offset for positioning other game elements.
+##
+## Returns the offset needed to position game elements correctly within the centered grid.
+func get_grid_offset():
+	return grid_offset
+
+## Get the actual grid dimensions.
+##
+## Returns the actual width and height of the grid in grid units.
+func get_actual_grid_size():
+	return actual_grid_size
 
 ## Handle viewport size changes.
 ##

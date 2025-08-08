@@ -17,8 +17,8 @@ config/icon="res://gfx/icon.svg"
 
 [display]
 
-window/size/viewport_width=1000
-window/size/viewport_height=400
+window/size/viewport_width=480
+window/size/viewport_height=240
 window/size/resizable=false
 window/size/borderless=true
 window/stretch/mode="canvas_items"
@@ -32,6 +32,8 @@ block_size=32
 movement_speed=0.1
 speed_boost_multiplier=2.0
 speed_boost_duration=0.5
+background_color=Color(0.0, 0.243, 0.0, 1.0)
+border_color=Color(0.1, 0.1, 0.1, 1.0)
 
 [input]
 

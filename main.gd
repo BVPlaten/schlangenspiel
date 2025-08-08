@@ -96,9 +96,12 @@ func _process(_delta):
 		return
 	
 	var block_size = ProjectSettings.get_setting("global/block_size")
+	var grid_background = get_node("GridBackground")
+	var grid_offset = grid_background.get_grid_offset()
 	
 	# Check if snake head collides with food
-	if snake.body[0] * block_size == food.position:
+	var snake_head_world_pos = grid_offset + snake.body[0] * block_size
+	if snake_head_world_pos == food.position:
 		snake.grow()  # Make snake grow by one segment
 		food.respawn()  # Move food to new random position
 		score += 1  # Increase score

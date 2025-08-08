@@ -68,31 +68,35 @@ func _process(delta):
 func _draw():
 	var color = Color.RED
 	color.a = alpha
+	
+	# Get grid offset for positioning
+	var grid_background = get_parent().get_node("GridBackground")
+	var grid_offset = grid_background.get_grid_offset()
+	
 	for segment in body:
-		draw_rect(Rect2(segment * block_size, Vector2(block_size, block_size)), color)
+		var pos = grid_offset + segment * block_size
+		draw_rect(Rect2(pos, Vector2(block_size, block_size)), color)
 
 ## Respawn the enemy at a safe position away from the snake.
 ##
 ## Finds a random position that's at least 3 grid units away from the snake head.
 ## @param snake_head_pos: Position of the snake's head to avoid
 func respawn_safe(snake_head_pos: Vector2):
-	var viewport_size = get_viewport_rect().size
-	
-	# Calculate grid dimensions ensuring minimum size
-	var grid_width = max(floor(viewport_size.x / block_size), min_grid_size.x)
-	var grid_height = max(floor(viewport_size.y / block_size), min_grid_size.y)
+	var grid_background = get_parent().get_node("GridBackground")
+	var grid_size = grid_background.get_actual_grid_size()
+	var grid_offset = grid_background.get_grid_offset()
 	
 	var safe_distance = 3
 	var attempts = 0
 	var max_attempts = 100
 	
 	while attempts < max_attempts:
-		var x = randi_range(0, grid_width - 1)
-		var y = randi_range(0, grid_height - 1)
+		var x = randi_range(0, grid_size.x - 1)
+		var y = randi_range(0, grid_size.y - 1)
 		var new_pos = Vector2(x, y)
 		
 		# Check distance from snake head
-		var distance = new_pos.distance_to(snake_head_pos / block_size)
+		var distance = new_pos.distance_to((snake_head_pos - grid_offset) / block_size)
 		if distance >= safe_distance:
 			grid_position = new_pos
 			body = [grid_position]
@@ -122,24 +126,22 @@ func set_random_direction():
 ##
 ## Moves the enemy in the current direction with screen wrapping.
 func _on_move_timer_timeout():
-	var viewport_size = get_viewport_rect().size
-	
-	# Calculate grid dimensions ensuring minimum size
-	var grid_width = max(floor(viewport_size.x / block_size), min_grid_size.x)
-	var grid_height = max(floor(viewport_size.y / block_size), min_grid_size.y)
+	var grid_background = get_parent().get_node("GridBackground")
+	var grid_size = grid_background.get_actual_grid_size()
+	var grid_offset = grid_background.get_grid_offset()
 	
 	var new_head_pos = body[0] + direction
 	
-	# Wrap around screen edges
-	if new_head_pos.x >= grid_width:
+	# Wrap around screen edges within actual grid
+	if new_head_pos.x >= grid_size.x:
 		new_head_pos.x = 0
 	elif new_head_pos.x < 0:
-		new_head_pos.x = grid_width - 1
+		new_head_pos.x = grid_size.x - 1
 	
-	if new_head_pos.y >= grid_height:
+	if new_head_pos.y >= grid_size.y:
 		new_head_pos.y = 0
 	elif new_head_pos.y < 0:
-		new_head_pos.y = grid_height - 1
+		new_head_pos.y = grid_size.y - 1
 	
 	body.insert(0, new_head_pos)
 	

@@ -69,23 +69,22 @@ func _on_Timer_timeout():
 	var head = body[0]
 	var new_head = head + direction
 	
-	var viewport_size = get_viewport_rect().size
+	# Get actual grid dimensions from the grid background
+	var grid_background = get_parent().get_node("GridBackground")
+	var grid_size = grid_background.get_actual_grid_size()
+	var grid_offset = grid_background.get_grid_offset()
 	
-	# Calculate actual grid dimensions ensuring minimum size
-	var grid_width = max(floor(viewport_size.x / block_size), min_grid_size.x)
-	var grid_height = max(floor(viewport_size.y / block_size), min_grid_size.y)
-	
-	# Handle horizontal screen wrapping with minimum grid size
-	if new_head.x >= grid_width:
+	# Handle horizontal screen wrapping within actual grid
+	if new_head.x >= grid_size.x:
 		new_head.x = 0  # Wrap to left edge
 	if new_head.x < 0:
-		new_head.x = grid_width - 1  # Wrap to right edge
+		new_head.x = grid_size.x - 1  # Wrap to right edge
 	
-	# Handle vertical screen wrapping with minimum grid size
-	if new_head.y >= grid_height:
+	# Handle vertical screen wrapping within actual grid
+	if new_head.y >= grid_size.y:
 		new_head.y = 0  # Wrap to top edge
 	if new_head.y < 0:
-		new_head.y = grid_height - 1  # Wrap to bottom edge
+		new_head.y = grid_size.y - 1  # Wrap to bottom edge
 
 	# Check for self-collision - game over if head hits any body segment
 	for i in range(1, body.size()):
@@ -114,6 +113,8 @@ func _on_Timer_timeout():
 ## for head and body parts. Scales sprites to match block_size.
 func create_sprite_nodes():
 	var block_size = ProjectSettings.get_setting("global/block_size")
+	var grid_background = get_parent().get_node("GridBackground")
+	var grid_offset = grid_background.get_grid_offset()
 	
 	# Clear existing sprites
 	for sprite in sprite_nodes:
@@ -135,8 +136,8 @@ func create_sprite_nodes():
 			var texture_size = sprite.texture.get_size()
 			sprite.scale = Vector2(block_size / texture_size.x, block_size / texture_size.y)
 		
-		# Position sprite
-		sprite.position = body[i] * block_size + Vector2(block_size/2, block_size/2)
+		# Position sprite with grid offset for centering
+		sprite.position = grid_offset + body[i] * block_size + Vector2(block_size/2, block_size/2)
 		
 		# Rotate sprite based on direction
 		if i == 0:
@@ -153,6 +154,8 @@ func create_sprite_nodes():
 ## all sprite nodes and rotating the head based on movement direction.
 func update_sprites():
 	var block_size = ProjectSettings.get_setting("global/block_size")
+	var grid_background = get_parent().get_node("GridBackground")
+	var grid_offset = grid_background.get_grid_offset()
 	
 	# Adjust sprite count to match body size
 	while sprite_nodes.size() < body.size():
@@ -180,8 +183,8 @@ func update_sprites():
 			sprite.texture = body_texture
 			update_body_rotation(sprite, i)
 		
-		# Update position
-		sprite.position = body[i] * block_size + Vector2(block_size/2, block_size/2)
+		# Update position with grid offset for centering
+		sprite.position = grid_offset + body[i] * block_size + Vector2(block_size/2, block_size/2)
 
 ## Update head sprite rotation based on movement direction.
 ##

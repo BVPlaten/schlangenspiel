@@ -57,21 +57,19 @@ func _draw():
 
 ## Respawn the food at a new random position.
 ##
-## Calculates a random grid position within the viewport boundaries and moves the food
+## Calculates a random grid position within the centered grid and moves the food
 ## to that position. Resets fade effects and timers.
 func respawn():
-	var viewport_size = get_viewport_rect().size
-	
-	# Calculate grid dimensions ensuring minimum size
-	var grid_width = max(floor(viewport_size.x / block_size), min_grid_size.x)
-	var grid_height = max(floor(viewport_size.y / block_size), min_grid_size.y)
+	var grid_background = get_parent().get_node("GridBackground")
+	var grid_size = grid_background.get_actual_grid_size()
+	var grid_offset = grid_background.get_grid_offset()
 	
 	# Calculate random grid position within actual grid bounds
-	var x = randi_range(0, grid_width - 1)
-	var y = randi_range(0, grid_height - 1)
+	var x = randi_range(0, grid_size.x - 1)
+	var y = randi_range(0, grid_size.y - 1)
 	
-	# Set position based on grid coordinates
-	position = Vector2(x * block_size, y * block_size)
+	# Set position based on grid coordinates with offset for centering
+	position = grid_offset + Vector2(x * block_size, y * block_size)
 	
 	# Reset visual effects and timers
 	alpha = 1.0
@@ -83,19 +81,17 @@ func respawn():
 ## Similar to respawn() but ensures the food doesn't spawn on the snake's head.
 ## @param snake_head_pos: Position of the snake's head to avoid
 func respawn_safe(snake_head_pos):
-	var viewport_size = get_viewport_rect().size
-	
-	# Calculate grid dimensions ensuring minimum size
-	var grid_width = max(floor(viewport_size.x / block_size), min_grid_size.x)
-	var grid_height = max(floor(viewport_size.y / block_size), min_grid_size.y)
+	var grid_background = get_parent().get_node("GridBackground")
+	var grid_size = grid_background.get_actual_grid_size()
+	var grid_offset = grid_background.get_grid_offset()
 	
 	var attempts = 0
 	var max_attempts = 100
 	
 	while attempts < max_attempts:
-		var x = randi_range(0, grid_width - 1)
-		var y = randi_range(0, grid_height - 1)
-		var new_pos = Vector2(x * block_size, y * block_size)
+		var x = randi_range(0, grid_size.x - 1)
+		var y = randi_range(0, grid_size.y - 1)
+		var new_pos = grid_offset + Vector2(x * block_size, y * block_size)
 		
 		if new_pos != snake_head_pos:
 			position = new_pos
@@ -107,9 +103,9 @@ func respawn_safe(snake_head_pos):
 		attempts += 1
 	
 	# Fallback: place at first available position
-	var x = randi_range(0, grid_width - 1)
-	var y = randi_range(0, grid_height - 1)
-	position = Vector2(x * block_size, y * block_size)
+	var x = randi_range(0, grid_size.x - 1)
+	var y = randi_range(0, grid_size.y - 1)
+	position = grid_offset + Vector2(x * block_size, y * block_size)
 	alpha = 1.0
 	life_time = 0.0
 	queue_redraw()
