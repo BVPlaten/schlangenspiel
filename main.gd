@@ -99,9 +99,11 @@ func _process(_delta):
 	var grid_background = get_node("GridBackground")
 	var grid_offset = grid_background.get_grid_offset()
 	
-	# Check if snake head collides with food
+	# Calculate snake head position in world coordinates
 	var snake_head_world_pos = grid_offset + snake.body[0] * block_size
-	if snake_head_world_pos == food.position:
+	
+	# Check if snake head collides with food
+	if snake_head_world_pos.distance_to(food.position) < block_size * 0.5:
 		snake.grow()  # Make snake grow by one segment
 		food.respawn()  # Move food to new random position
 		score += 1  # Increase score
@@ -114,6 +116,7 @@ func _process(_delta):
 		update_score_display()
 	
 	# Check for collisions with enemies
+	var grid_size = grid_background.get_actual_grid_size()
 	for enemy in enemies:
 		for segment in enemy.body:
 			if snake.body[0] == segment:

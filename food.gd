@@ -65,11 +65,22 @@ func respawn():
 	var grid_offset = grid_background.get_grid_offset()
 	
 	# Calculate random grid position within actual grid bounds
-	var x = randi_range(0, grid_size.x - 1)
-	var y = randi_range(0, grid_size.y - 1)
+	var x = randi_range(0, max(0, grid_size.x - 1))
+	var y = randi_range(0, max(0, grid_size.y - 1))
+	
+	# Ensure valid grid dimensions
+	if grid_size.x <= 0 or grid_size.y <= 0:
+		grid_size = Vector2(10, 10)  # Fallback
 	
 	# Set position based on grid coordinates with offset for centering
-	position = grid_offset + Vector2(x * block_size, y * block_size)
+	var new_position = grid_offset + Vector2(x * block_size, y * block_size)
+	
+	# Ensure position is within viewport bounds
+	var viewport_size = get_viewport_rect().size
+	new_position.x = clamp(new_position.x, 0, viewport_size.x - block_size)
+	new_position.y = clamp(new_position.y, 0, viewport_size.y - block_size)
+	
+	position = new_position
 	
 	# Reset visual effects and timers
 	alpha = 1.0
