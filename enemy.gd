@@ -128,7 +128,7 @@ func set_random_direction():
 func _on_move_timer_timeout():
 	var grid_background = get_parent().get_node("GridBackground")
 	var grid_size = grid_background.get_actual_grid_size()
-	var grid_offset = grid_background.get_grid_offset()
+	# var grid_offset = grid_background.get_grid_offset()
 	
 	var new_head_pos = body[0] + direction
 	

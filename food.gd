@@ -5,8 +5,9 @@
 ## including fade-out before respawning.
 extends Node2D
 
-## Current alpha transparency value for fade effects (1.0 = fully visible)
-var alpha = 1.0
+## The visual representation of the food.
+@onready var sprite: Sprite2D = $Sprite2D
+ 
 ## Timer that controls automatic respawning
 var spawn_timer
 ## Counter tracking how long this food item has existed
@@ -22,14 +23,21 @@ var min_grid_size = Vector2(10, 10)
 ## Called automatically by the Godot engine when the scene is loaded.
 func _ready():
 	block_size = ProjectSettings.get_setting("global/block_size")
+
+	# Scale the sprite to match the block size, ensuring the texture is valid.
+	if sprite.texture:
+		var texture_size = sprite.texture.get_size()
+		if texture_size.x > 0 and texture_size.y > 0:
+			sprite.scale = Vector2(block_size, block_size) / texture_size
+
+	# Offset the sprite to center it within its grid cell.
+	sprite.position = Vector2(block_size / 2.0, block_size / 2.0)
+
 	spawn_timer = Timer.new()
 	spawn_timer.set_wait_time(8.0)  # Respawn every 8 seconds
 	spawn_timer.connect("timeout", Callable(self, "_on_spawn_timer_timeout"))
 	add_child(spawn_timer)
 	spawn_timer.start()
-	
-	# Connect to viewport size changes
-	get_viewport().connect("size_changed", Callable(self, "_on_viewport_size_changed"))
 
 ## Update food appearance every frame.
 ##
@@ -42,18 +50,8 @@ func _process(delta):
 	# Start fading after 4 seconds of existence
 	if life_time >= 4.0:
 		var fade_progress = (life_time - 4.0) / 4.0
-		alpha = lerp(1.0, 0.1, fade_progress)
-		alpha = max(alpha, 0.1)  # Ensure minimum visibility
-		queue_redraw()
-
-## Custom drawing for the food item.
-##
-## Draws a white rectangle representing the food item on the grid.
-## The transparency is controlled by the alpha value for fade effects.
-func _draw():
-	var color = Color.WHITE
-	color.a = alpha  # Apply transparency
-	draw_rect(Rect2(0, 0, block_size, block_size), color)
+		sprite.modulate.a = lerp(1.0, 0.1, fade_progress)
+		sprite.modulate.a = max(sprite.modulate.a, 0.1)  # Ensure minimum visibility
 
 ## Respawn the food at a new random position.
 ##
@@ -83,9 +81,8 @@ func respawn():
 	position = new_position
 	
 	# Reset visual effects and timers
-	alpha = 1.0
+	sprite.modulate.a = 1.0
 	life_time = 0.0
-	queue_redraw()
 
 ## Respawn food at a safe position (not on snake head).
 ##
@@ -106,29 +103,21 @@ func respawn_safe(snake_head_pos):
 		
 		if new_pos != snake_head_pos:
 			position = new_pos
-			alpha = 1.0
+			sprite.modulate.a = 1.0
 			life_time = 0.0
-			queue_redraw()
 			return
 		
 		attempts += 1
 	
 	# Fallback: place at first available position
-	var fallback_x = randi_range(0, grid_size.x - 1)
-	var fallback_y = randi_range(0, grid_size.y - 1)
+	var fallback_x = randi_range(0, max(0, grid_size.x - 1))
+	var fallback_y = randi_range(0, max(0, grid_size.y - 1))
 	position = grid_offset + Vector2(fallback_x * block_size, fallback_y * block_size)
-	alpha = 1.0
+	sprite.modulate.a = 1.0
 	life_time = 0.0
-	queue_redraw()
 
 ## Timer callback for automatic respawning.
 ##
 ## Called when the spawn timer expires. Triggers respawn at a new random position.
 func _on_spawn_timer_timeout():
 	respawn()
-
-## Handle viewport size changes.
-##
-## Redraws the food when the window is resized.
-func _on_viewport_size_changed():
-	queue_redraw()
