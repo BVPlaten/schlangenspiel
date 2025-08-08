@@ -100,9 +100,9 @@ func respawn_safe(snake_head_pos):
 	var max_attempts = 100
 	
 	while attempts < max_attempts:
-		var x = randi_range(0, grid_size.x - 1)
-		var y = randi_range(0, grid_size.y - 1)
-		var new_pos = grid_offset + Vector2(x * block_size, y * block_size)
+		var rand_x = randi_range(0, grid_size.x - 1)
+		var rand_y = randi_range(0, grid_size.y - 1)
+		var new_pos = grid_offset + Vector2(rand_x * block_size, rand_y * block_size)
 		
 		if new_pos != snake_head_pos:
 			position = new_pos
@@ -114,9 +114,9 @@ func respawn_safe(snake_head_pos):
 		attempts += 1
 	
 	# Fallback: place at first available position
-	var x = randi_range(0, grid_size.x - 1)
-	var y = randi_range(0, grid_size.y - 1)
-	position = grid_offset + Vector2(x * block_size, y * block_size)
+	var fallback_x = randi_range(0, grid_size.x - 1)
+	var fallback_y = randi_range(0, grid_size.y - 1)
+	position = grid_offset + Vector2(fallback_x * block_size, fallback_y * block_size)
 	alpha = 1.0
 	life_time = 0.0
 	queue_redraw()

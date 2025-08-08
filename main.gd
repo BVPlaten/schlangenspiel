@@ -116,7 +116,6 @@ func _process(_delta):
 		update_score_display()
 	
 	# Check for collisions with enemies
-	var grid_size = grid_background.get_actual_grid_size()
 	for enemy in enemies:
 		for segment in enemy.body:
 			if snake.body[0] == segment:

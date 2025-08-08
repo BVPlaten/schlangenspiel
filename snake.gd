@@ -65,14 +65,12 @@ func _ready():
 ## - Self-collision detection
 ## - Body growth when food is eaten
 func _on_Timer_timeout():
-	var block_size = ProjectSettings.get_setting("global/block_size")
 	var head = body[0]
 	var new_head = head + direction
 	
 	# Get actual grid dimensions from the grid background
 	var grid_background = get_parent().get_node("GridBackground")
 	var grid_size = grid_background.get_actual_grid_size()
-	var grid_offset = grid_background.get_grid_offset()
 	
 	# Handle horizontal screen wrapping within actual grid
 	if new_head.x >= grid_size.x:
