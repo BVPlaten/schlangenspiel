@@ -27,7 +27,7 @@ var controller_input
 ##
 ## Sets up the snake, food, audio, and input systems.
 ## Called automatically by the Godot engine when the scene is loaded.
-func _ready():
+func _ready() -> void:
 	# Create and initialize the snake
 	snake = load("res://snake.gd").new()
 	add_child(snake)
@@ -36,7 +36,6 @@ func _ready():
 	# Create and initialize the food
 	food = load("res://food.tscn").instantiate()
 	add_child(food)
-	food.respawn()
 	
 	# Set up eating sound effect
 	eat_sound = AudioStreamPlayer.new()
@@ -61,6 +60,15 @@ func _ready():
 	
 	# Connect to viewport size changes
 	get_viewport().connect("size_changed", Callable(self, "_on_viewport_size_changed"))
+
+	# Wait for the first process frame to ensure all nodes (like GridBackground)
+	# have their final sizes calculated. This is crucial for correct initial placement.
+	await get_tree().process_frame
+
+	# Now, it's safe to place the food at a random, valid position.
+	# We use respawn_safe to ensure the food doesn't spawn on the snake's head.
+	var snake_head_world_pos = get_node("GridBackground").get_grid_offset() + snake.body[0] * ProjectSettings.get_setting("global/block_size")
+	food.respawn_safe(snake_head_world_pos)
 
 ## Configure input handling based on the selected input mode.
 ##

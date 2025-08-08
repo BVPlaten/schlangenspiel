@@ -21,7 +21,7 @@ var min_grid_size = Vector2(10, 10)
 ##
 ## Sets up the respawn timer and starts automatic respawning.
 ## Called automatically by the Godot engine when the scene is loaded.
-func _ready():
+func _ready() -> void:
 	block_size = ProjectSettings.get_setting("global/block_size")
 
 	# Scale the sprite to match the block size, ensuring the texture is valid.
