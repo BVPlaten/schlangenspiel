@@ -90,7 +90,7 @@ func _on_sfx_volume_changed(value: float) -> void:
 
 ## Handles the back button press.
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://start_scene.tscn")
+	get_tree().change_scene_to_file("res://scenes/start_scene.tscn")
 
 ## Handle keyboard and controller input for UI navigation.
 func _input(event: InputEvent) -> void:

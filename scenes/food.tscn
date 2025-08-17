@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dlyv6a0j2v0vj"]
 
-[ext_resource type="Script" path="res://food.gd" id="1_j7v7j"]
+[ext_resource type="Script" uid="uid://dw43b4cfixmx3" path="res://scenes/food.gd" id="1_j7v7j"]
 [ext_resource type="Texture2D" path="res://gfx/food.png" id="2_8x5k2"]
 
 [node name="Food" type="Node2D"]

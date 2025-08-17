@@ -124,14 +124,14 @@ func update_menu_selection():
 ## Stops title music and switches to the main game scene.
 func _on_start_pressed():
 	title_music.stop()
-	get_tree().change_scene_to_file("res://main.tscn")
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 ## Handle Options button press.
 ##
 ## Stops title music and switches to the options scene.
 func _on_options_pressed():
 	title_music.stop()
-	get_tree().change_scene_to_file("res://options_scene.tscn")
+	get_tree().change_scene_to_file("res://scenes/options_scene.tscn")
 
 ## Clean up resources when the scene is exited.
 ##

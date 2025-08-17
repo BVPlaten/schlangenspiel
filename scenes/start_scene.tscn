@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://c8h6k2q5v8x1p"]
 
-[ext_resource type="Script" uid="uid://dftunpmeqjxce" path="res://start_scene.gd" id="1_8x5k2"]
+[ext_resource type="Script" uid="uid://bkx5uv43u42c5" path="res://scenes/start_scene.gd" id="1_8x5k2"]
 [ext_resource type="Texture2D" uid="uid://dc1m8u0qec0sa" path="res://gfx/titleImageWormCheese.png" id="2_kyjdd"]
 
 [node name="StartScene" type="Control"]

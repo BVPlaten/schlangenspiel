@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=3 uid="uid://c2ygt8c8a7w1c"]
 
-[ext_resource type="Script" uid="uid://nwufr45t4g62" path="res://main.gd" id="1_v81yv"]
+[ext_resource type="Script" uid="uid://ctulvn04svncf" path="res://scenes/main.gd" id="1_v81yv"]
 [ext_resource type="AudioStream" uid="uid://d4fxiqbof6oct" path="res://sfx/wrong-buzzer-6268.mp3" id="2_game_over_sound"]
 [ext_resource type="Texture2D" uid="uid://2d20q225nd3m" path="res://gfx/game_over.png" id="3_game_over_image"]
-[ext_resource type="Script" uid="uid://b1wr43vt55pcy" path="res://grid_background.gd" id="4_grid_background_script"]
+[ext_resource type="Script" uid="uid://bhegearuetfw7" path="res://scenes/grid_background.gd" id="4_grid_background_script"]
 [ext_resource type="FontFile" uid="uid://cv6skkp4yj5p8" path="res://gfx/KidpixiesRegular-p0Z1.ttf" id="5_font"]
 
 [node name="Main" type="Node2D"]
@@ -42,4 +42,3 @@ stretch_mode = 4
 
 [node name="GameOverSound" type="AudioStreamPlayer" parent="CanvasLayer"]
 stream = ExtResource("2_game_over_sound")
-bus = "SFX"

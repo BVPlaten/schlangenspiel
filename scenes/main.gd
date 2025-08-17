@@ -29,12 +29,12 @@ var controller_input
 ## Called automatically by the Godot engine when the scene is loaded.
 func _ready() -> void:
 	# Create and initialize the snake
-	snake = load("res://snake.gd").new()
+	snake = load("res://scenes/snake.gd").new()
 	add_child(snake)
 	snake.game_over.connect(Callable(self, "_on_snake_game_over"))
 	
 	# Create and initialize the food
-	food = load("res://food.tscn").instantiate()
+	food = load("res://scenes/food.tscn").instantiate()
 	add_child(food)
 	
 	# Set up eating sound effect
@@ -228,7 +228,7 @@ func add_enemy():
 	for e in enemies:
 		e.grow()
 	
-	var enemy = load("res://enemy.tscn").instantiate()
+	var enemy = load("res://scenes/enemy.tscn").instantiate()
 	add_child(enemy)
 	enemy.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
 	enemies.append(enemy)
@@ -259,4 +259,4 @@ func _on_viewport_size_changed():
 ## Stops all game audio and switches back to the start screen.
 func return_to_start_scene():
 	background_music.stop()
-	get_tree().change_scene_to_file("res://start_scene.tscn")
+	get_tree().change_scene_to_file("res://scenes/start_scene.tscn")
