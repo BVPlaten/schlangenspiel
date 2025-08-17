@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Schlangenspiel"
-run/main_scene="res://start_scene.tscn"
+run/main_scene="uid://c8h6k2q5v8x1p"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://gfx/icon.svg"
+
+[autoload]
+
+GlobalSettings="*res://GlobalSettings.gd"
 
 [display]
 
