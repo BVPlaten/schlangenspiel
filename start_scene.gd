@@ -29,6 +29,7 @@ func _ready():
 	if music_stream:
 		music_stream.loop = true  # Enable looping for title music
 	title_music.stream = music_stream
+	title_music.bus = "Music" # Assign to Music bus for volume control
 	add_child(title_music)
 	title_music.play()
 	

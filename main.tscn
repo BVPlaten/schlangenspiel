@@ -42,3 +42,4 @@ stretch_mode = 4
 
 [node name="GameOverSound" type="AudioStreamPlayer" parent="CanvasLayer"]
 stream = ExtResource("2_game_over_sound")
+bus = "SFX"

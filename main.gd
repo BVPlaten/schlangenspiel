@@ -40,6 +40,7 @@ func _ready() -> void:
 	# Set up eating sound effect
 	eat_sound = AudioStreamPlayer.new()
 	eat_sound.stream = load("res://sfx/gotcha.wav")
+	eat_sound.bus = "SFX" # Assign to SFX bus for volume control
 	add_child(eat_sound)
 	
 	# Set up background music
