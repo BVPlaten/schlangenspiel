@@ -1,11 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://c2ygt8c8a7w1c"]
+[gd_scene load_steps=6 format=3 uid="uid://c2ygt8c8a7w1c"]
 
 [ext_resource type="Script" uid="uid://nwufr45t4g62" path="res://main.gd" id="1_v81yv"]
 [ext_resource type="AudioStream" uid="uid://d4fxiqbof6oct" path="res://sfx/wrong-buzzer-6268.mp3" id="2_game_over_sound"]
 [ext_resource type="Texture2D" uid="uid://2d20q225nd3m" path="res://gfx/game_over.png" id="3_game_over_image"]
 [ext_resource type="Script" uid="uid://b1wr43vt55pcy" path="res://grid_background.gd" id="4_grid_background_script"]
-[ext_resource type="FontFile" path="res://gfx/KidpixiesRegular-p0Z1.ttf" id="5_font"]
-
+[ext_resource type="FontFile" uid="uid://cv6skkp4yj5p8" path="res://gfx/KidpixiesRegular-p0Z1.ttf" id="5_font"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_v81yv")
@@ -20,12 +19,12 @@ offset_left = 10.0
 offset_top = 10.0
 offset_right = 100.0
 offset_bottom = 36.0
-text = "Score: 0"
 theme_override_fonts/font = ExtResource("5_font")
-
+text = "Score: 0"
 
 [node name="GameOverRect" type="TextureRect" parent="CanvasLayer"]
 visible = false
+modulate = Color(0, 1, 0, 0.75)
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -40,7 +39,6 @@ grow_vertical = 2
 texture = ExtResource("3_game_over_image")
 expand_mode = 1
 stretch_mode = 4
-modulate = Color(0, 1, 0, 0.75)
 
 [node name="GameOverSound" type="AudioStreamPlayer" parent="CanvasLayer"]
 stream = ExtResource("2_game_over_sound")
