@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://brp4qap3f2eca"]
+
+[ext_resource type="Script" uid="uid://70w38d1vxpfv" path="res://test/camera_test.gd" id="1_811nu"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_onuh2"]
+size = Vector2(95.8119, 61.4744)
+
+[node name="CharacterBody2D" type="CharacterBody2D"]
+position = Vector2(-1, 0)
+script = ExtResource("1_811nu")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-23.5442, 36.2293)
+rotation = -0.493924
+shape = SubResource("RectangleShape2D_onuh2")
+
+[node name="ColorRect" type="ColorRect" parent="CollisionShape2D"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ColorRect_fix" type="ColorRect" parent="."]
+offset_left = 32.0
+offset_top = 75.0
+offset_right = 72.0
+offset_bottom = 115.0
+color = Color(0.836076, 0.0974146, 0.386681, 1)
