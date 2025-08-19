@@ -8,28 +8,49 @@ extends Node2D
 ## Signal emitted when the snake collides with itself
 signal game_over
 
-var direction              = Vector2.RIGHT                                                              # Aktueller Bewegungsvektor (RECHTS, LINKS, HOCH, RUNTER)
-var body                   = [Vector2(5, 5)]                                                            # Array von Vector2-Positionen, die die Körpersegmente darstellen (Kopf bei Index 0)
-var body_directions        = [Vector2.RIGHT]                                                            # Array von Richtungen für jedes Körpersegment
-var timer                                                                                               # Timer, der die Bewegungsgeschwindigkeit steuert
-@export var move_interval: float = ProjectSettings.get_setting("global/movement_speed", 0.05)           # Bewegungsintervall in Sekunden (niedriger = schneller)
-var base_move_interval: float                                                                           # Basis-Bewegungsintervall (normale Geschwindigkeit)
-var new_segment: bool      = false                                                                      # Flag, ob die Schlange beim nächsten Zug wachsen soll
-var speed_boost_timer                                                                                   # Timer für die Dauer des Geschwindigkeitsschubs
-var is_speed_boosted: bool = false                                                                      # Flag, ob der Geschwindigkeitsschub aktiv ist
-var speed_boost_multiplier: float = ProjectSettings.get_setting("global/speed_boost_multiplier", 2.0)   # Multiplikator für den Geschwindigkeitsschub
-var speed_boost_duration: float = ProjectSettings.get_setting("global/speed_boost_duration", 0.2)       # Dauer des Geschwindigkeitsschubs
-var head_texture                                                                                        # Textur für den Kopf-Sprite
-var body_texture                                                                                        # Textur für den Körper-Sprite
-var sprite_nodes           = []                                                                         # Array von Sprite2D-Nodes für die visuelle Darstellung
+var direction: Vector2 = Vector2.RIGHT                    # Aktueller Bewegungsvektor (RECHTS, LINKS, HOCH, RUNTER)
+var body: Array[Vector2] = [Vector2(5, 5)]               # Array von Vector2-Positionen, die die Körpersegmente darstellen (Kopf bei Index 0)
+var body_directions: Array[Vector2] = [Vector2.RIGHT]    # Array von Richtungen für jedes Körpersegment
+var timer: Timer                                         # Timer, der die Bewegungsgeschwindigkeit steuert
+@export var move_interval: float = 0.05                  # Bewegungsintervall in Sekunden (niedriger = schneller)
+var base_move_interval: float                            # Basis-Bewegungsintervall (normale Geschwindigkeit)
+var new_segment: bool = false                            # Flag, ob die Schlange beim nächsten Zug wachsen soll
+var speed_boost_timer: Timer                             # Timer für die Dauer des Geschwindigkeitsschubs
+var is_speed_boosted: bool = false                       # Flag, ob der Geschwindigkeitsschub aktiv ist
+var speed_boost_multiplier: float = 2.0                  # Multiplikator für den Geschwindigkeitsschub
+var speed_boost_duration: float = 0.2                    # Dauer des Geschwindigkeitsschubs
+var head_texture: Texture2D                              # Textur für den Kopf-Sprite
+var body_texture: Texture2D                              # Textur für den Körper-Sprite
+var sprite_nodes: Array[Sprite2D] = []                   # Array von Sprite2D-Nodes für die visuelle Darstellung
 ## Minimum grid dimensions (10x10 fields)
-var min_grid_size = Vector2(10, 10)
+var min_grid_size: Vector2 = Vector2(10, 10)
+
+# Cached references for performance
+@onready var grid_background: Node2D
+@onready var block_size: int
 
 ## Initialize the snake when the node enters the scene tree.
 ##
 ## Sets up the movement timer, configures the movement interval,
 ## loads sprite textures, and starts the game loop. Called automatically by Godot engine.
-func _ready():
+func _ready() -> void:
+	# Cache references for performance
+	grid_background = get_parent().get_node("GridBackground")
+	block_size = ProjectSettings.get_setting("global/block_size")
+	
+	# Load settings
+	var global_speed = ProjectSettings.get_setting("global/movement_speed", 0.05)
+	if global_speed > 0:
+		move_interval = global_speed
+	
+	var global_multiplier = ProjectSettings.get_setting("global/speed_boost_multiplier", 2.0)
+	if global_multiplier > 0:
+		speed_boost_multiplier = global_multiplier
+	
+	var global_duration = ProjectSettings.get_setting("global/speed_boost_duration", 0.2)
+	if global_duration > 0:
+		speed_boost_duration = global_duration
+	
 	# Store base movement interval
 	base_move_interval = move_interval
 	
@@ -42,20 +63,20 @@ func _ready():
 	
 	# Create and configure movement timer
 	timer = Timer.new()
-	timer.set_wait_time(move_interval)
-	timer.connect("timeout", Callable(self, "_on_Timer_timeout"))
+	timer.wait_time = move_interval
+	timer.timeout.connect(_on_Timer_timeout)
 	add_child(timer)
 	timer.start()  # Start the game loop
 	
 	# Create and configure speed boost timer
 	speed_boost_timer = Timer.new()
-	speed_boost_timer.set_wait_time(speed_boost_duration)
+	speed_boost_timer.wait_time = speed_boost_duration
 	speed_boost_timer.one_shot = true
-	speed_boost_timer.connect("timeout", Callable(self, "_on_speed_boost_timeout"))
+	speed_boost_timer.timeout.connect(_on_speed_boost_timeout)
 	add_child(speed_boost_timer)
 	
 	# Connect to viewport size changes
-	get_viewport().connect("size_changed", Callable(self, "_on_viewport_size_changed"))
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
 
 ## Timer callback for snake movement.
 ##
@@ -64,13 +85,12 @@ func _ready():
 ## - Screen wrapping (snake appears on opposite side)
 ## - Self-collision detection
 ## - Body growth when food is eaten
-func _on_Timer_timeout():
-	var head = body[0]
-	var new_head = head + direction
+func _on_Timer_timeout() -> void:
+	var head: Vector2 = body[0]
+	var new_head: Vector2 = head + direction
 	
 	# Get actual grid dimensions from the grid background
-	var grid_background = get_parent().get_node("GridBackground")
-	var grid_size = grid_background.get_actual_grid_size()
+	var grid_size: Vector2 = grid_background.get_actual_grid_size()
 	
 	# Handle horizontal screen wrapping within actual grid
 	if new_head.x >= grid_size.x:
@@ -85,7 +105,7 @@ func _on_Timer_timeout():
 		new_head.y = grid_size.y - 1  # Wrap to bottom edge
 
 	# Check for self-collision - game over if head hits any body segment
-	for i in range(1, body.size()):
+	for i: int in range(1, body.size()):
 		if new_head == body[i]:
 			game_over.emit()  # Signal game over to main controller
 			return
@@ -109,19 +129,17 @@ func _on_Timer_timeout():
 ##
 ## Creates Sprite2D nodes for each body segment, with different textures
 ## for head and body parts. Scales sprites to match block_size.
-func create_sprite_nodes():
-	var block_size = ProjectSettings.get_setting("global/block_size")
-	var grid_background = get_parent().get_node("GridBackground")
-	var grid_offset = grid_background.get_grid_offset()
+func create_sprite_nodes() -> void:
+	var grid_offset: Vector2 = grid_background.get_grid_offset()
 	
 	# Clear existing sprites
-	for sprite in sprite_nodes:
+	for sprite: Sprite2D in sprite_nodes:
 		sprite.queue_free()
 	sprite_nodes.clear()
 	
 	# Create sprites for each body segment
-	for i in range(body.size()):
-		var sprite = Sprite2D.new()
+	for i: int in range(body.size()):
+		var sprite: Sprite2D = Sprite2D.new()
 		
 		# Use head texture for first segment, body texture for others
 		if i == 0:
@@ -131,8 +149,9 @@ func create_sprite_nodes():
 		
 		# Scale sprite to match block size
 		if sprite.texture:
-			var texture_size = sprite.texture.get_size()
-			sprite.scale = Vector2(block_size / texture_size.x, block_size / texture_size.y)
+			var texture_size: Vector2 = sprite.texture.get_size()
+			if texture_size.x > 0 and texture_size.y > 0:
+				sprite.scale = Vector2(block_size / texture_size.x, block_size / texture_size.y)
 		
 		# Position sprite with grid offset for centering
 		sprite.position = grid_offset + body[i] * block_size + Vector2(block_size/2, block_size/2)
@@ -150,28 +169,27 @@ func create_sprite_nodes():
 ##
 ## Updates the visual representation of the snake by repositioning
 ## all sprite nodes and rotating the head based on movement direction.
-func update_sprites():
-	var block_size = ProjectSettings.get_setting("global/block_size")
-	var grid_background = get_parent().get_node("GridBackground")
-	var grid_offset = grid_background.get_grid_offset()
+func update_sprites() -> void:
+	var grid_offset: Vector2 = grid_background.get_grid_offset()
 	
 	# Adjust sprite count to match body size
 	while sprite_nodes.size() < body.size():
-		var sprite = Sprite2D.new()
+		var sprite: Sprite2D = Sprite2D.new()
 		sprite.texture = body_texture
 		if sprite.texture:
-			var texture_size = sprite.texture.get_size()
-			sprite.scale = Vector2(block_size / texture_size.x, block_size / texture_size.y)
+			var texture_size: Vector2 = sprite.texture.get_size()
+			if texture_size.x > 0 and texture_size.y > 0:
+				sprite.scale = Vector2(block_size / texture_size.x, block_size / texture_size.y)
 		add_child(sprite)
 		sprite_nodes.append(sprite)
 	
 	while sprite_nodes.size() > body.size():
-		var sprite = sprite_nodes.pop_back()
+		var sprite: Sprite2D = sprite_nodes.pop_back()
 		sprite.queue_free()
 	
 	# Update positions and textures
-	for i in range(body.size()):
-		var sprite = sprite_nodes[i]
+	for i: int in range(body.size()):
+		var sprite: Sprite2D = sprite_nodes[i]
 		
 		# Update texture (head vs body)
 		if i == 0:
@@ -188,7 +206,7 @@ func update_sprites():
 ##
 ## Rotates the head sprite to face the current movement direction.
 ## @param head_sprite: The Sprite2D node representing the snake's head
-func update_head_rotation(head_sprite):
+func update_head_rotation(head_sprite: Sprite2D) -> void:
 	if direction == Vector2.UP:
 		head_sprite.rotation = 0
 	elif direction == Vector2.RIGHT:
@@ -204,9 +222,9 @@ func update_head_rotation(head_sprite):
 ## Each segment maintains its original direction throughout its lifetime.
 ## @param body_sprite: The Sprite2D node representing a body segment
 ## @param segment_index: The index of the body segment
-func update_body_rotation(body_sprite, segment_index):
+func update_body_rotation(body_sprite: Sprite2D, segment_index: int) -> void:
 	if segment_index < body_directions.size():
-		var segment_direction = body_directions[segment_index]
+		var segment_direction: Vector2 = body_directions[segment_index]
 		if segment_direction == Vector2.UP:
 			body_sprite.rotation = 0
 		elif segment_direction == Vector2.RIGHT:
@@ -223,24 +241,30 @@ func update_body_rotation(body_sprite, segment_index):
 ## Sets the growth flag which causes the snake to retain its tail segment
 ## on the next movement, effectively increasing its length by one.
 ## Called by the main controller when the snake eats food.
-func grow():
+func grow() -> void:
 	new_segment = true
 
 ## Activate speed boost after direction change.
 ##
 ## Increases movement speed by the configured multiplier for the configured duration.
 ## Called by the main controller when direction changes.
-func activate_speed_boost():
+func activate_speed_boost() -> void:
 	if not is_speed_boosted:
 		is_speed_boosted = true
 		# Divide interval by multiplier to increase speed
-		var boosted_interval = base_move_interval / speed_boost_multiplier
-		timer.set_wait_time(boosted_interval)
+		var boosted_interval: float = base_move_interval / speed_boost_multiplier
+		timer.wait_time = boosted_interval
 		speed_boost_timer.start()
 
 ## Reset speed to normal after boost timer expires.
 ##
 ## Called automatically by the speed boost timer after the configured duration.
-func _on_speed_boost_timeout():
+func _on_speed_boost_timeout() -> void:
 	is_speed_boosted = false
-	timer.set_wait_time(base_move_interval)
+	timer.wait_time = base_move_interval
+
+## Handle viewport size changes.
+##
+## Updates sprites when the window is resized.
+func _on_viewport_size_changed() -> void:
+	update_sprites()
