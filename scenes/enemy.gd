@@ -55,10 +55,13 @@ func _ready() -> void:
 	
 	# Connect to viewport size changes
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
+	
+	# Initial sprite setup
+	update_sprite_position()
 
 ## Update enemy appearance every frame.
 ##
-## Handles fade-out effect as the enemy ages.
+## Handles fade-out effect as the enemy ages and updates sprite position.
 ## @param delta: Time elapsed since the last frame
 func _process(delta: float) -> void:
 	life_time += delta
@@ -67,21 +70,27 @@ func _process(delta: float) -> void:
 		var fade_progress: float = (life_time - 2.0) / 2.0
 		alpha = lerp(1.0, 0.1, fade_progress)
 		alpha = max(alpha, 0.1)
-		queue_redraw()
+	
+	update_sprite_position()
 
-## Custom drawing for the enemy.
-##
-## Draws red rectangles representing the enemy on the grid.
-func _draw() -> void:
-	var color: Color = Color.RED
-	color.a = alpha
-	
-	# Get grid offset for positioning
-	var grid_offset: Vector2 = grid_background.get_grid_offset()
-	
-	for segment: Vector2 in body:
-		var pos: Vector2 = grid_offset + segment * block_size
-		draw_rect(Rect2(pos, Vector2(block_size, block_size)), color)
+## Update the sprite position and scale to fit the grid.
+func update_sprite_position() -> void:
+	var sprite = $Sprite2D
+	if sprite and sprite.texture:
+		# Get grid offset for positioning
+		var grid_offset: Vector2 = grid_background.get_grid_offset()
+		
+		# Position based on current grid position
+		var pos: Vector2 = grid_offset + grid_position * block_size
+		sprite.position = pos
+		
+		# Scale sprite to fit grid cell
+		var texture_size = sprite.texture.get_size()
+		var scale_factor = Vector2(block_size / texture_size.x, block_size / texture_size.y)
+		sprite.scale = scale_factor
+		
+		# Apply alpha for fade effect
+		sprite.modulate = Color(1, 1, 1, alpha)
 
 ## Respawn the enemy at a safe position away from the snake.
 ##
@@ -108,7 +117,7 @@ func respawn_safe(snake_head_pos: Vector2) -> void:
 			alpha = 1.0
 			life_time = 0.0
 			set_random_direction()
-			queue_redraw()
+			update_sprite_position()
 			return
 		attempts += 1
 	
@@ -118,7 +127,7 @@ func respawn_safe(snake_head_pos: Vector2) -> void:
 	alpha = 1.0
 	life_time = 0.0
 	set_random_direction()
-	queue_redraw()
+	update_sprite_position()
 
 ## Set a random movement direction.
 ##
@@ -154,7 +163,7 @@ func _on_move_timer_timeout() -> void:
 		body.pop_back()
 	
 	grid_position = new_head_pos
-	queue_redraw()
+	update_sprite_position()
 
 ## Grow the enemy by one segment.
 ##
@@ -172,6 +181,6 @@ func _on_spawn_timer_timeout() -> void:
 
 ## Handle viewport size changes.
 ##
-## Redraws the enemy when the window is resized.
+## Updates sprite position when the window is resized.
 func _on_viewport_size_changed() -> void:
-	queue_redraw()
+	update_sprite_position()
