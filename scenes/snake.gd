@@ -154,7 +154,7 @@ func create_sprite_nodes() -> void:
 				sprite.scale = Vector2(block_size / texture_size.x, block_size / texture_size.y)
 		
 		# Position sprite with grid offset for centering
-		sprite.position = grid_offset + body[i] * block_size + Vector2(block_size/2, block_size/2)
+		sprite.position = grid_offset + body[i] * block_size + Vector2(float(block_size)/2.0, float(block_size)/2.0)
 		
 		# Rotate sprite based on direction
 		if i == 0:
@@ -200,7 +200,7 @@ func update_sprites() -> void:
 			update_body_rotation(sprite, i)
 		
 		# Update position with grid offset for centering
-		sprite.position = grid_offset + body[i] * block_size + Vector2(block_size/2, block_size/2)
+		sprite.position = grid_offset + body[i] * block_size + Vector2(float(block_size)/2.0, float(block_size)/2.0)
 
 ## Update head sprite rotation based on movement direction.
 ##
