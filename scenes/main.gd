@@ -5,22 +5,27 @@
 ## It serves as the central hub for all game logic and interactions.
 extends Node2D
 
-var snake             # Referenz zur Schlangeninstanz
-var food              # Referenz zur Futterinstanz
-var score = 0         # Aktueller Spielstand, erhöht sich, wenn die Schlange Futter frisst
-var game_over = false # Flag, das anzeigt, ob das Spiel beendet ist
-var is_paused = false # Flag, das anzeigt, ob das Spiel aktuell pausiert ist
-var eat_sound         # Audio-Player für den Fress-Soundeffekt
-var background_music  # Audio-Player für die Hintergrundmusik
-var enemies = []      # Array, das alle aktiven Gegnerinstanzen auf dem Spielfeld speichert
+@onready var snake: Node2D                    # Referenz zur Schlangeninstanz
+@onready var food: Node2D                     # Referenz zur Futterinstanz
+@onready var grid_background: Node2D          # Referenz zum Grid-Hintergrund
+@onready var score_label: Label              # Referenz zum Score-Label
+@onready var game_over_rect: Control        # Referenz zum Game Over Overlay
+@onready var game_over_sound: AudioStreamPlayer # Referenz zum Game Over Sound
+
+var score: int = 0                           # Aktueller Spielstand, erhöht sich, wenn die Schlange Futter frisst
+var game_over: bool = false                  # Flag, das anzeigt, ob das Spiel beendet ist
+var is_paused: bool = false                  # Flag, das anzeigt, ob das Spiel aktuell pausiert ist
+var eat_sound: AudioStreamPlayer             # Audio-Player für den Fress-Soundeffekt
+var background_music: AudioStreamPlayer       # Audio-Player für die Hintergrundmusik
+var enemies: Array[Node2D] = []              # Array, das alle aktiven Gegnerinstanzen auf dem Spielfeld speichert
 
 ## Input configuration mode: "keyboard", "controller", or "both"
 ## Determines which input methods are active for player control
-@export var input_mode = "both"
+@export var input_mode: String = "both"
 ## Reference to keyboard input handler instance
-var keyboard_input
+var keyboard_input: Node
 ## Reference to controller input handler instance
-var controller_input
+var controller_input: Node
 
 
 ## Initialize the game when the node enters the scene tree.
@@ -28,13 +33,21 @@ var controller_input
 ## Sets up the snake, food, audio, and input systems.
 ## Called automatically by the Godot engine when the scene is loaded.
 func _ready() -> void:
+	# Cache node references
+	grid_background = $GridBackground
+	score_label = $CanvasLayer/ScoreLabel
+	game_over_rect = $CanvasLayer/GameOverRect
+	game_over_sound = $CanvasLayer/GameOverSound
+	
 	# Create and initialize the snake
-	snake = load("res://scenes/snake.gd").new()
+	var snake_scene = load("res://scenes/snake.gd")
+	snake = snake_scene.new()
 	add_child(snake)
-	snake.game_over.connect(Callable(self, "_on_snake_game_over"))
+	snake.game_over.connect(_on_snake_game_over)
 	
 	# Create and initialize the food
-	food = load("res://scenes/food.tscn").instantiate()
+	var food_scene = load("res://scenes/food.tscn")
+	food = food_scene.instantiate()
 	add_child(food)
 	
 	# Set up eating sound effect
@@ -60,7 +73,7 @@ func _ready() -> void:
 	update_score_display()
 	
 	# Connect to viewport size changes
-	get_viewport().connect("size_changed", Callable(self, "_on_viewport_size_changed"))
+	get_viewport().size_changed.connect(_on_viewport_size_changed)
 
 	# Wait for the first process frame to ensure all nodes (like GridBackground)
 	# have their final sizes calculated. This is crucial for correct initial placement.
@@ -68,7 +81,8 @@ func _ready() -> void:
 
 	# Now, it's safe to place the food at a random, valid position.
 	# We use respawn_safe to ensure the food doesn't spawn on the snake's head.
-	var snake_head_world_pos = get_node("GridBackground").get_grid_offset() + snake.body[0] * ProjectSettings.get_setting("global/block_size")
+	var block_size: int = ProjectSettings.get_setting("global/block_size")
+	var snake_head_world_pos: Vector2 = grid_background.get_grid_offset() + snake.body[0] * block_size
 	food.respawn_safe(snake_head_world_pos)
 
 ## Configure input handling based on the selected input mode.
@@ -76,40 +90,41 @@ func _ready() -> void:
 ## Loads and initializes keyboard and/or controller input handlers
 ## depending on the input_mode setting. Connects signals for
 ## direction changes, pause, exit, and restart actions.
-func setup_input():
+func setup_input() -> void:
 	# Set up keyboard input if enabled
 	if input_mode == "keyboard" or input_mode == "both":
-		keyboard_input = load("res://input_keyboard.gd").new()
+		var keyboard_scene = load("res://input_keyboard.gd")
+		keyboard_input = keyboard_scene.new()
 		add_child(keyboard_input)
-		keyboard_input.direction_changed.connect(Callable(self, "_on_direction_changed"))
-		keyboard_input.pause_pressed.connect(Callable(self, "_on_pause_pressed"))
-		keyboard_input.exit_pressed.connect(Callable(self, "_on_exit_pressed"))
-		keyboard_input.restart_pressed.connect(Callable(self, "_on_restart_pressed"))
+		keyboard_input.direction_changed.connect(_on_direction_changed)
+		keyboard_input.pause_pressed.connect(_on_pause_pressed)
+		keyboard_input.exit_pressed.connect(_on_exit_pressed)
+		keyboard_input.restart_pressed.connect(_on_restart_pressed)
 	
 	# Set up controller input if enabled
 	if input_mode == "controller" or input_mode == "both":
-		controller_input = load("res://input_controller.gd").new()
+		var controller_scene = load("res://input_controller.gd")
+		controller_input = controller_scene.new()
 		add_child(controller_input)
-		controller_input.direction_changed.connect(Callable(self, "_on_direction_changed"))
-		controller_input.pause_pressed.connect(Callable(self, "_on_pause_pressed"))
-		controller_input.exit_pressed.connect(Callable(self, "_on_exit_pressed"))
-		controller_input.restart_pressed.connect(Callable(self, "_on_restart_pressed"))
+		controller_input.direction_changed.connect(_on_direction_changed)
+		controller_input.pause_pressed.connect(_on_pause_pressed)
+		controller_input.exit_pressed.connect(_on_exit_pressed)
+		controller_input.restart_pressed.connect(_on_restart_pressed)
 
 ## Main game loop processing called every frame.
 ##
 ## Handles collision detection between snake and food/poison items,
 ## updates score, and manages game state transitions.
-func _process(_delta):
+func _process(_delta: float) -> void:
 	# Skip processing when paused or game over
 	if is_paused or game_over:
 		return
 	
-	var block_size = ProjectSettings.get_setting("global/block_size")
-	var grid_background = get_node("GridBackground")
-	var grid_offset = grid_background.get_grid_offset()
+	var block_size: int = ProjectSettings.get_setting("global/block_size")
+	var grid_offset: Vector2 = grid_background.get_grid_offset()
 	
 	# Calculate snake head position in world coordinates
-	var snake_head_world_pos = grid_offset + snake.body[0] * block_size
+	var snake_head_world_pos: Vector2 = grid_offset + snake.body[0] * block_size
 	
 	# Check if snake head collides with food
 	if snake_head_world_pos.distance_to(food.position) < block_size * 0.5:
@@ -125,8 +140,8 @@ func _process(_delta):
 		update_score_display()
 	
 	# Check for collisions with enemies
-	for enemy in enemies:
-		for segment in enemy.body:
+	for enemy: Node2D in enemies:
+		for segment: Vector2 in enemy.body:
 			if snake.body[0] == segment:
 				_on_snake_game_over()  # Trigger game over on enemy collision
 				return
@@ -134,21 +149,21 @@ func _process(_delta):
 ## Update the score display label.
 ##
 ## Shows current score during gameplay or "Pause" when game is paused.
-func update_score_display():
+func update_score_display() -> void:
 	if is_paused:
-		$CanvasLayer/ScoreLabel.text = "Pause"
+		score_label.text = "Pause"
 	else:
-		$CanvasLayer/ScoreLabel.text = "Score: " + str(score)
+		score_label.text = "Score: " + str(score)
 
 ## Handle game over event triggered by the snake.
 ##
 ## Stops snake movement, displays game over UI, plays game over sound,
 ## stops background music, and sets the game over flag to prevent further gameplay.
-func _on_snake_game_over():
+func _on_snake_game_over() -> void:
 	print("Game Over signal received!")
 	snake.timer.stop()  # Stop snake movement
-	$CanvasLayer/GameOverRect.visible = true  # Show game over screen
-	$CanvasLayer/GameOverSound.play()  # Play game over sound effect
+	game_over_rect.visible = true  # Show game over screen
+	game_over_sound.play()  # Play game over sound effect
 	background_music.stop()  # Stop background music during game over
 	game_over = true
 
@@ -157,12 +172,12 @@ func _on_snake_game_over():
 ## Updates the snake's direction while preventing 180-degree turns
 ## that would cause immediate self-collision.
 ## @param new_direction: The new direction vector to attempt
-func _on_direction_changed(new_direction):
+func _on_direction_changed(new_direction: Vector2) -> void:
 	if game_over or is_paused:
 		return
 	
 	# Prevent reversing into itself (180-degree turns)
-	var direction_changed = false
+	var direction_changed: bool = false
 	if new_direction == Vector2.RIGHT and snake.direction != Vector2.LEFT:
 		snake.direction = new_direction
 		direction_changed = true
@@ -183,7 +198,7 @@ func _on_direction_changed(new_direction):
 ## Handle pause toggle from input systems.
 ##
 ## Toggles the paused state and updates snake movement and background music accordingly.
-func _on_pause_pressed():
+func _on_pause_pressed() -> void:
 	if game_over:
 		return
 	is_paused = not is_paused
@@ -200,13 +215,13 @@ func _on_pause_pressed():
 ## Handle exit action from input systems.
 ##
 ## Immediately ends the game and returns to the start scene.
-func _on_exit_pressed():
+func _on_exit_pressed() -> void:
 	return_to_start_scene()
 
 ## Handle restart action from input systems.
 ##
 ## Reloads the current scene to restart the game, but only when game is over.
-func _on_restart_pressed():
+func _on_restart_pressed() -> void:
 	if game_over:
 		get_tree().reload_current_scene()
 
@@ -214,7 +229,7 @@ func _on_restart_pressed():
 ##
 ## Provides fallback restart functionality using SPACE key when game is over.
 ## @param event: The input event to process
-func _input(event):
+func _input(event: InputEvent) -> void:
 	# Fallback for SPACE key restart when game is over
 	if game_over and event.is_action_pressed("ui_accept"):
 		get_tree().reload_current_scene()
@@ -223,40 +238,44 @@ func _input(event):
 ##
 ## Creates an enemy at a safe location (not on snake head) and
 ## adds it to the enemies array. Enemies respawn automatically.
-func add_enemy():
+func add_enemy() -> void:
 	# Grow existing enemies
-	for e in enemies:
+	for e: Node2D in enemies:
 		e.grow()
 	
-	var enemy = load("res://scenes/enemy.tscn").instantiate()
+	var enemy_scene = load("res://scenes/enemy.tscn")
+	var enemy = enemy_scene.instantiate()
 	add_child(enemy)
-	enemy.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
+	var block_size: int = ProjectSettings.get_setting("global/block_size")
+	enemy.respawn_safe(snake.body[0] * block_size)
 	enemies.append(enemy)
 	
 	# Connect timer to respawn enemy when it expires
-	enemy.spawn_timer.connect("timeout", Callable(self, "_on_enemy_respawn").bind(enemy))
+	enemy.spawn_timer.timeout.connect(_on_enemy_respawn.bind(enemy))
 
 ## Handle enemy respawn when timer expires.
 ##
 ## Respawns the enemy at a new safe location.
 ## @param enemy: The enemy instance to respawn
-func _on_enemy_respawn(enemy):
-	enemy.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
+func _on_enemy_respawn(enemy: Node2D) -> void:
+	var block_size: int = ProjectSettings.get_setting("global/block_size")
+	enemy.respawn_safe(snake.body[0] * block_size)
 
 ## Handle viewport size changes.
 ##
 ## Updates all game elements when the window is resized.
-func _on_viewport_size_changed():
+func _on_viewport_size_changed() -> void:
 	# Ensure food stays within bounds after resize
 	food.respawn()
 	
 	# Ensure enemies stay within bounds after resize
-	for enemy in enemies:
-		enemy.respawn_safe(snake.body[0] * ProjectSettings.get_setting("global/block_size"))
+	var block_size: int = ProjectSettings.get_setting("global/block_size")
+	for enemy: Node2D in enemies:
+		enemy.respawn_safe(snake.body[0] * block_size)
 
 ## Return to the start scene from the game.
 ##
 ## Stops all game audio and switches back to the start screen.
-func return_to_start_scene():
+func return_to_start_scene() -> void:
 	background_music.stop()
 	get_tree().change_scene_to_file("res://scenes/start_scene.tscn")
