@@ -67,8 +67,8 @@ func respawn() -> void:
 	var grid_offset: Vector2 = grid_background.get_grid_offset()
 	
 	# Calculate random grid position within actual grid bounds
-	var x: int = randi_range(0, max(0, grid_size.x - 1))
-	var y: int = randi_range(0, max(0, grid_size.y - 1))
+	var x: int = randi_range(0, max(0, int(grid_size.x) - 1))
+	var y: int = randi_range(0, max(0, int(grid_size.y) - 1))
 	
 	# Ensure valid grid dimensions
 	if grid_size.x <= 0 or grid_size.y <= 0:
@@ -100,8 +100,8 @@ func respawn_safe(snake_head_pos: Vector2) -> void:
 	var max_attempts: int = 100
 	
 	while attempts < max_attempts:
-		var rand_x: int = randi_range(0, grid_size.x - 1)
-		var rand_y: int = randi_range(0, grid_size.y - 1)
+		var rand_x: int = randi_range(0, int(grid_size.x) - 1)
+		var rand_y: int = randi_range(0, int(grid_size.y) - 1)
 		var new_pos: Vector2 = grid_offset + Vector2(rand_x * block_size, rand_y * block_size)
 		
 		if new_pos != snake_head_pos:
@@ -113,8 +113,8 @@ func respawn_safe(snake_head_pos: Vector2) -> void:
 		attempts += 1
 	
 	# Fallback: place at first available position
-	var fallback_x: int = randi_range(0, max(0, grid_size.x - 1))
-	var fallback_y: int = randi_range(0, max(0, grid_size.y - 1))
+	var fallback_x: int = randi_range(0, max(0, int(grid_size.x) - 1))
+	var fallback_y: int = randi_range(0, max(0, int(grid_size.y) - 1))
 	position = grid_offset + Vector2(fallback_x * block_size, fallback_y * block_size)
 	sprite.modulate.a = 1.0
 	life_time = 0.0

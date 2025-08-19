@@ -96,8 +96,8 @@ func respawn_safe(snake_head_pos: Vector2) -> void:
 	var max_attempts: int = 100
 	
 	while attempts < max_attempts:
-		var x: int = randi_range(0, grid_size.x - 1)
-		var y: int = randi_range(0, grid_size.y - 1)
+		var x: int = randi_range(0, int(grid_size.x) - 1)
+		var y: int = randi_range(0, int(grid_size.y) - 1)
 		var new_pos: Vector2 = Vector2(x, y)
 		
 		# Check distance from snake head
