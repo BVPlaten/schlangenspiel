@@ -31,3 +31,10 @@
 
 # Ignore test directory
 test/
+
+# Build artifacts and user-specific configs
+Schlangenspiel.pck
+Schlangenspiel.sh
+Schlangenspiel.x86_64
+export_presets.cfg
+scenes/ai_config.txt

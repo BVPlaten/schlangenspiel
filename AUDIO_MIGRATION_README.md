@@ -52,7 +52,7 @@ audio_manager.set_volume("Ambient", 3)
 ### 2. Neue Struktur
 ```
 Alte Struktur:
-├── GlobalSettings.gd (Singleton)
+├── tools/GlobalSettings.gd (Singleton)
 ├── Prozedurale Methoden
 └── Feste Music/SFX Busse
 

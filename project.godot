@@ -17,7 +17,7 @@ config/icon="res://gfx/icon.svg"
 
 [autoload]
 
-GlobalSettings="*res://GlobalSettings.gd"
+GlobalSettings="*res://tools/GlobalSettings.gd"
 
 [display]
 

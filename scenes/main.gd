@@ -19,13 +19,8 @@ var eat_sound: AudioStreamPlayer             # Audio-Player für den Fress-Sound
 var background_music: AudioStreamPlayer       # Audio-Player für die Hintergrundmusik
 var enemies: Array[Node2D] = []              # Array, das alle aktiven Gegnerinstanzen auf dem Spielfeld speichert
 
-## Input configuration mode: "keyboard", "controller", or "both"
-## Determines which input methods are active for player control
-@export var input_mode: String = "both"
-## Reference to keyboard input handler instance
-var keyboard_input: Node
-## Reference to controller input handler instance
-var controller_input: Node
+## Reference to the universal input manager instance
+var input_manager: Node
 
 
 ## Initialize the game when the node enters the scene tree.
@@ -85,31 +80,20 @@ func _ready() -> void:
 	var snake_head_world_pos: Vector2 = grid_background.get_grid_offset() + snake.body[0] * block_size
 	food.respawn_safe(snake_head_world_pos)
 
-## Configure input handling based on the selected input mode.
+## Configure input handling.
 ##
-## Loads and initializes keyboard and/or controller input handlers
-## depending on the input_mode setting. Connects signals for
-## direction changes, pause, exit, and restart actions.
+## Loads and initializes the universal input manager and connects its signals.
 func setup_input() -> void:
-	# Set up keyboard input if enabled
-	if input_mode == "keyboard" or input_mode == "both":
-		var keyboard_scene = load("res://input_keyboard.gd")
-		keyboard_input = keyboard_scene.new()
-		add_child(keyboard_input)
-		keyboard_input.direction_changed.connect(_on_direction_changed)
-		keyboard_input.pause_pressed.connect(_on_pause_pressed)
-		keyboard_input.exit_pressed.connect(_on_exit_pressed)
-		keyboard_input.restart_pressed.connect(_on_restart_pressed)
+	# Set up the universal input manager
+	var manager_scene = load("res://tools/manager_input.gd")
+	input_manager = manager_scene.new()
+	add_child(input_manager)
 	
-	# Set up controller input if enabled
-	if input_mode == "controller" or input_mode == "both":
-		var controller_scene = load("res://input_controller.gd")
-		controller_input = controller_scene.new()
-		add_child(controller_input)
-		controller_input.direction_changed.connect(_on_direction_changed)
-		controller_input.pause_pressed.connect(_on_pause_pressed)
-		controller_input.exit_pressed.connect(_on_exit_pressed)
-		controller_input.restart_pressed.connect(_on_restart_pressed)
+	# Connect to the input manager's signals
+	input_manager.direction_changed.connect(_on_direction_changed)
+	input_manager.pause_pressed.connect(_on_pause_pressed)
+	input_manager.exit_pressed.connect(_on_exit_pressed)
+	input_manager.restart_pressed.connect(_on_restart_pressed)
 
 ## Main game loop processing called every frame.
 ##
