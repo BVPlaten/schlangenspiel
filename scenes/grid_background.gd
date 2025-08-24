@@ -6,13 +6,17 @@
 extends Node2D
 
 ## Size of a grid block in pixels, cached for performance.
-var block_size: int
+var block_size: int = 0
 ## Minimum grid dimensions (10x10 fields)
 var min_grid_size: Vector2 = Vector2(10, 10)
 ## Actual grid dimensions calculated for centering
 var actual_grid_size: Vector2 = Vector2.ZERO
 ## Offset for centering the grid
 var grid_offset: Vector2 = Vector2.ZERO
+## Cached viewport size to avoid repeated calculations
+var cached_viewport_size: Vector2 = Vector2.ZERO
+## Cached total grid dimensions for performance
+var cached_total_grid_size: Vector2 = Vector2.ZERO
 
 ## Initialize the grid background when the node enters the scene tree.
 ##
@@ -30,10 +34,45 @@ func _ready() -> void:
 ## The grid lines are drawn in dark gray to provide subtle visual guidance.
 func _draw() -> void:
 	var viewport_size: Vector2 = get_viewport_rect().size
+	
+	# Cache expensive calculations if viewport size hasn't changed
+	if cached_viewport_size != viewport_size:
+		cached_viewport_size = viewport_size
+		calculate_grid_dimensions(viewport_size)
+	
 	var background_color: Color = ProjectSettings.get_setting("global/background_color")
 	var border_color: Color = ProjectSettings.get_setting("global/border_color")
 	var line_color: Color = Color(0.15, 0.15, 0.15, 1)  # Dark gray lines for subtle grid
+	
+	# Draw background/border
+	draw_rect(Rect2(Vector2.ZERO, viewport_size), border_color)
+	
+	# Draw game area background
+	draw_rect(Rect2(grid_offset, cached_total_grid_size), background_color)
+	
+	# Draw vertical grid lines
+	for x in range(0, int(actual_grid_size.x) + 1):
+		var x_pos: float = grid_offset.x + x * block_size
+		draw_line(
+			Vector2(x_pos, grid_offset.y),  # Line start point (top)
+			Vector2(x_pos, grid_offset.y + cached_total_grid_size.y),  # Line end point (bottom)
+			line_color
+		)
 
+	# Draw horizontal grid lines
+	for y in range(0, int(actual_grid_size.y) + 1):
+		var y_pos: float = grid_offset.y + y * block_size
+		draw_line(
+			Vector2(grid_offset.x, y_pos),  # Line start point (left)
+			Vector2(grid_offset.x + cached_total_grid_size.x, y_pos),  # Line end point (right)
+			line_color
+		)
+
+## Calculate grid dimensions and cache results.
+##
+## Performs expensive calculations once when viewport size changes.
+## @param viewport_size: Current viewport size
+func calculate_grid_dimensions(viewport_size: Vector2) -> void:
 	# Calculate maximum possible grid dimensions that fit the viewport
 	var max_grid_width: int = int(viewport_size.x / block_size)
 	var max_grid_height: int = int(viewport_size.y / block_size)
@@ -52,34 +91,12 @@ func _draw() -> void:
 	var total_grid_width: float = float(grid_width * block_size)
 	var total_grid_height: float = float(grid_height * block_size)
 	
+	cached_total_grid_size = Vector2(total_grid_width, total_grid_height)
+	
 	grid_offset = Vector2(
 		(viewport_size.x - total_grid_width) / 2,
 		(viewport_size.y - total_grid_height) / 2
 	)
-	
-	# Draw background/border
-	draw_rect(Rect2(Vector2.ZERO, viewport_size), border_color)
-	
-	# Draw game area background
-	draw_rect(Rect2(grid_offset, Vector2(total_grid_width, total_grid_height)), background_color)
-	
-	# Draw vertical grid lines
-	for x in range(0, grid_width + 1):
-		var x_pos: float = grid_offset.x + x * block_size
-		draw_line(
-			Vector2(x_pos, grid_offset.y),  # Line start point (top)
-			Vector2(x_pos, grid_offset.y + total_grid_height),  # Line end point (bottom)
-			line_color
-		)
-
-	# Draw horizontal grid lines
-	for y in range(0, grid_height + 1):
-		var y_pos: float = grid_offset.y + y * block_size
-		draw_line(
-			Vector2(grid_offset.x, y_pos),  # Line start point (left)
-			Vector2(grid_offset.x + total_grid_width, y_pos),  # Line end point (right)
-			line_color
-		)
 
 ## Get the actual grid offset for positioning other game elements.
 ##

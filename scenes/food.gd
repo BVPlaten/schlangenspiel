@@ -9,16 +9,16 @@ extends Node2D
 @onready var sprite: Sprite2D = $Sprite2D
  
 ## Timer that controls automatic respawning
-var spawn_timer: Timer
+var spawn_timer: Timer = null
 ## Counter tracking how long this food item has existed
 var life_time: float = 0.0
 ## Size of a grid block in pixels, cached for performance.
-var block_size: int
+var block_size: int = 0
 ## Minimum grid dimensions (10x10 fields)
 var min_grid_size: Vector2 = Vector2(10, 10)
 
 # Cached references for performance
-@onready var grid_background: Node2D
+@onready var grid_background: Node2D = null
 
 ## Initialize the food when the node enters the scene tree.
 ##

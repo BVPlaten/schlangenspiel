@@ -7,11 +7,11 @@ extends Node2D
 ## Current alpha transparency value for fade effects (1.0 = fully visible)
 var alpha: float = 1.0
 ## Timer that controls automatic respawning
-var spawn_timer: Timer
+var spawn_timer: Timer = null
 ## Counter tracking how long this enemy has existed
 var life_time: float = 0.0
 ## Timer that controls movement
-var move_timer: Timer
+var move_timer: Timer = null
 ## Current movement direction
 var direction: Vector2 = Vector2.ZERO
 ## Current grid position
@@ -21,12 +21,12 @@ var body: Array[Vector2] = []
 ## Flag for growing the enemy
 var new_segment: bool = false
 ## Size of a grid block in pixels, cached for performance
-var block_size: int
+var block_size: int = 0
 ## Minimum grid dimensions (10x10 fields)
 var min_grid_size: Vector2 = Vector2(10, 10)
 
 # Cached references for performance
-@onready var grid_background: Node2D
+@onready var grid_background: Node2D = null
 
 ## Initialize the enemy when the node enters the scene tree.
 ##

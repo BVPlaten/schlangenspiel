@@ -21,6 +21,7 @@ func setup_audio_buses() -> void:
 
 func load_settings() -> void:
 	if not FileAccess.file_exists(SETTINGS_FILE):
+		print("No settings file found, using default values")
 		return # No settings file to load
 
 	var file: FileAccess = FileAccess.open(SETTINGS_FILE, FileAccess.READ)
@@ -30,6 +31,10 @@ func load_settings() -> void:
 
 	var json_text: String = file.get_as_text()
 	file.close()
+	
+	if json_text.is_empty():
+		push_error("Settings file is empty")
+		return
 	
 	var json: JSON = JSON.new()
 	var error: Error = json.parse(json_text)
@@ -41,6 +46,8 @@ func load_settings() -> void:
 	if typeof(data) == TYPE_DICTIONARY:
 		music_volume = data.get("music_volume", 10)
 		sfx_volume = data.get("sfx_volume", 10)
+	else:
+		push_error("Settings file contains invalid data format")
 
 func save_settings() -> void:
 	var data: Dictionary = {

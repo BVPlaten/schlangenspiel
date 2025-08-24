@@ -5,22 +5,22 @@
 ## It serves as the central hub for all game logic and interactions.
 extends Node2D
 
-@onready var snake: Node2D                    # Referenz zur Schlangeninstanz
-@onready var food: Node2D                     # Referenz zur Futterinstanz
-@onready var grid_background: Node2D          # Referenz zum Grid-Hintergrund
-@onready var score_label: Label              # Referenz zum Score-Label
-@onready var game_over_rect: Control        # Referenz zum Game Over Overlay
-@onready var game_over_sound: AudioStreamPlayer # Referenz zum Game Over Sound
+@onready var snake: Node2D = null                    # Reference to snake instance
+@onready var food: Node2D = null                     # Reference to food instance  
+@onready var grid_background: Node2D = null          # Reference to grid background
+@onready var score_label: Label = null               # Reference to score label
+@onready var game_over_rect: Control = null          # Reference to game over overlay
+@onready var game_over_sound: AudioStreamPlayer = null # Reference to game over sound
 
-var score: int = 0                           # Aktueller Spielstand, erhöht sich, wenn die Schlange Futter frisst
-var game_over: bool = false                  # Flag, das anzeigt, ob das Spiel beendet ist
-var is_paused: bool = false                  # Flag, das anzeigt, ob das Spiel aktuell pausiert ist
-var eat_sound: AudioStreamPlayer             # Audio-Player für den Fress-Soundeffekt
-var background_music: AudioStreamPlayer       # Audio-Player für die Hintergrundmusik
-var enemies: Array[Node2D] = []              # Array, das alle aktiven Gegnerinstanzen auf dem Spielfeld speichert
+var score: int = 0                           # Current score, increases when snake eats food
+var game_over: bool = false                  # Flag indicating if game is over
+var is_paused: bool = false                  # Flag indicating if game is paused
+var eat_sound: AudioStreamPlayer = null      # Audio player for eating sound effect
+var background_music: AudioStreamPlayer = null # Audio player for background music
+var enemies: Array[Node2D] = []              # Array storing all active enemy instances
 
 ## Reference to the universal input manager instance
-var input_manager: Node
+var input_manager: Node = null
 
 
 ## Initialize the game when the node enters the scene tree.
@@ -190,9 +190,11 @@ func _on_pause_pressed() -> void:
 	
 	# Control background music based on pause state
 	if is_paused:
-		background_music.stream_paused = true
+		if background_music.playing:
+			background_music.stop()
 	else:
-		background_music.stream_paused = false
+		if not background_music.playing:
+			background_music.play()
 	
 	update_score_display()
 

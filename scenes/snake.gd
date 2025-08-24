@@ -8,26 +8,26 @@ extends Node2D
 ## Signal emitted when the snake collides with itself
 signal game_over
 
-var direction: Vector2 = Vector2.RIGHT                    # Aktueller Bewegungsvektor (RECHTS, LINKS, HOCH, RUNTER)
-var body: Array[Vector2] = [Vector2(5, 5)]               # Array von Vector2-Positionen, die die Körpersegmente darstellen (Kopf bei Index 0)
-var body_directions: Array[Vector2] = [Vector2.RIGHT]    # Array von Richtungen für jedes Körpersegment
-var timer: Timer                                         # Timer, der die Bewegungsgeschwindigkeit steuert
-@export var move_interval: float = 0.05                  # Bewegungsintervall in Sekunden (niedriger = schneller)
-var base_move_interval: float                            # Basis-Bewegungsintervall (normale Geschwindigkeit)
-var new_segment: bool = false                            # Flag, ob die Schlange beim nächsten Zug wachsen soll
-var speed_boost_timer: Timer                             # Timer für die Dauer des Geschwindigkeitsschubs
-var is_speed_boosted: bool = false                       # Flag, ob der Geschwindigkeitsschub aktiv ist
-var speed_boost_multiplier: float = 2.0                  # Multiplikator für den Geschwindigkeitsschub
-var speed_boost_duration: float = 0.2                    # Dauer des Geschwindigkeitsschubs
-var head_texture: Texture2D                              # Textur für den Kopf-Sprite
-var body_texture: Texture2D                              # Textur für den Körper-Sprite
-var sprite_nodes: Array[Sprite2D] = []                   # Array von Sprite2D-Nodes für die visuelle Darstellung
+var direction: Vector2 = Vector2.RIGHT                    # Current movement vector (RIGHT, LEFT, UP, DOWN)
+var body: Array[Vector2] = [Vector2(5, 5)]               # Array of Vector2 positions representing body segments (head at index 0)
+var body_directions: Array[Vector2] = [Vector2.RIGHT]    # Array of directions for each body segment
+var timer: Timer = null                                  # Timer controlling movement speed
+@export var move_interval: float = 0.05                  # Movement interval in seconds (lower = faster)
+var base_move_interval: float = 0.0                      # Base movement interval (normal speed)
+var new_segment: bool = false                            # Flag indicating if snake should grow on next move
+var speed_boost_timer: Timer = null                      # Timer for speed boost duration
+var is_speed_boosted: bool = false                       # Flag indicating if speed boost is active
+var speed_boost_multiplier: float = 2.0                  # Multiplier for speed boost
+var speed_boost_duration: float = 0.2                    # Duration of speed boost
+var head_texture: Texture2D = null                       # Texture for head sprite
+var body_texture: Texture2D = null                       # Texture for body sprite
+var sprite_nodes: Array[Sprite2D] = []                   # Array of Sprite2D nodes for visual representation
 ## Minimum grid dimensions (10x10 fields)
 var min_grid_size: Vector2 = Vector2(10, 10)
 
 # Cached references for performance
-@onready var grid_background: Node2D
-@onready var block_size: int
+@onready var grid_background: Node2D = null
+@onready var block_size: int = 0
 
 ## Initialize the snake when the node enters the scene tree.
 ##
